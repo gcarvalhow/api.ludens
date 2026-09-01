@@ -1,0 +1,23 @@
+name: dom-ludens-dev
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: dom-ludens-postgres-dev
+    environment:
+      POSTGRES_USER: ludens
+      POSTGRES_PASSWORD: ludens
+      POSTGRES_DB: ludens
+    ports:
+      - "5432:5432"
+    volumes:
+      - ludens-pg-data:/var/lib/postgresql/data
+    networks:
+      - dom-ludens-dev
+
+volumes:
+  ludens-pg-data:
+
+networks:
+  dom-ludens-dev:
+    name: dom-ludens-dev

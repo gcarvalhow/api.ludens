@@ -1,0 +1,5 @@
+# Ownership de api.ludens (backend). Ver docs.ludens/team/overview.md (RACI).
+*                 @igorSeberino
+/docker/          @gabrielcarvallho @igorSeberino
+/.github/         @gabrielcarvallho @igorSeberino
+/migrations/      @igorSeberino
