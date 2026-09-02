@@ -14,25 +14,20 @@ from app.outbox.relay import run as run_outbox_relay
 
 logger = logging.getLogger(__name__)
 
-# Handlers de outbox de cada módulo são registrados no import — descomente
-# conforme cada feature entra (ver docs.ludens/specs/):
-# import app.modules.notification.handlers  # noqa: F401
-
+BACKGROUND_TASK_MAX_AGE_SECONDS = {"outbox_relay": 20}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     tasks = [
         asyncio.create_task(run_outbox_relay()),
-        # Features acrescentam tasks aqui (ex.: varredura de reservas expiradas —
-        # booking-reservation, RN03).
     ]
+
     yield
+
     for task in tasks:
         task.cancel()
 
-
 app = FastAPI(title="Ludens API", version="0.1.0", lifespan=lifespan)
-
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -40,7 +35,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=422,
         content={"detail": format_validation_errors(exc.errors())},
     )
-
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,14 +44,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers de cada módulo (identity, catalog, booking, payment) entram aqui à
-# medida que cada feature é implementada:
-# from app.modules.identity.router import router as identity_router
-# app.include_router(identity_router)
-
-BACKGROUND_TASK_MAX_AGE_SECONDS = {"outbox_relay": 20}
-
-
 @app.get("/health")
 async def health():
     stale = [
@@ -65,6 +51,8 @@ async def health():
         for name, max_age in BACKGROUND_TASK_MAX_AGE_SECONDS.items()
         if (age := seconds_since_beat(name)) is not None and age > max_age
     ]
+
     if stale:
         return JSONResponse(status_code=503, content={"status": "unhealthy", "stale": stale})
+    
     return {"status": "ok", "environment": settings.environment}

@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 
-
 def format_validation_errors(errors: Sequence[dict]) -> list[dict]:
     result = []
 
