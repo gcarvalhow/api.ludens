@@ -24,6 +24,8 @@ class BaseRepository(Generic[T]):
         if not ids:
             return []
 
+        # `== True` (e não `is True`): numa cláusula WHERE do SQLAlchemy a
+        # comparação precisa ser explícita para virar SQL — daí o noqa E712.
         result = await self._session.execute(
             select(self.model).where(self.model.id.in_(ids), self.model.is_active == True)  # noqa: E712
         )
@@ -55,6 +57,9 @@ class BaseRepository(Generic[T]):
         return list(result.scalars().all())
 
     async def find_by_id_for_update(self, entity_id: UUID) -> T | None:
+        # SELECT ... FOR UPDATE: trava a linha até o fim da transação. Usar em
+        # toda operação que decide sobre disponibilidade sob concorrência
+        # (reservar/confirmar/liberar assento — RN05), nunca leitura + update.
         result = await self._session.execute(
             select(self.model).where(self.model.id == entity_id, self.model.is_active == True).with_for_update()  # noqa: E712
         )
@@ -73,9 +78,12 @@ class BaseRepository(Generic[T]):
         self._session.add(entity)
 
 class AggregateRepository(BaseRepository[T]):
+    # save() grava as linhas `Event` na MESMA transação que persiste o agregado —
+    # é o que garante o Outbox (a mudança de domínio e o evento vão juntos ou não
+    # vão). Nenhum módulo escreve na tabela `events` diretamente.
     async def save(self, entity: T) -> None:  # type: ignore[override]
         self._session.add(entity)
-        
+
         for event in entity.dequeue_events():  # type: ignore[attr-defined]
             self._session.add(Event(
                 aggregate_id=entity.id,
@@ -84,6 +92,7 @@ class AggregateRepository(BaseRepository[T]):
             ))
 
     def _serialize(self, event: DomainEvent) -> dict:
+        # Campos que não são primitivos JSON (UUID, datetime, Enum) viram string.
         return {
             k: str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v
             for k, v in vars(event).items()

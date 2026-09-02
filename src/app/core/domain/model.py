@@ -16,4 +16,6 @@ class Model(DeclarativeBase):
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
+    # Soft delete: "remover" é is_active=False por um método de domínio, nunca um
+    # DELETE. Toda leitura genérica de BaseRepository já filtra is_active.
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

@@ -26,6 +26,8 @@ BATCH_SIZE = 50
 async def _process_batch() -> None:
     async with AsyncSessionLocal() as session:
         async with session.begin():
+            # skip_locked: se um dia houver mais de um processo do relay, cada um
+            # pega um lote diferente em vez de esperar o outro.
             result = await session.execute(
                 select(Event)
                 .where(Event.dispatched_at.is_(None))
