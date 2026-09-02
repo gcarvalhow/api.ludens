@@ -12,7 +12,9 @@ class Settings(BaseSettings):
     ver as specs em docs.ludens/specs/.
     """
 
-    model_config = SettingsConfigDict(env_file=".env.local", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env.local", env_file_encoding="utf-8", extra="ignore"
+    )
 
     environment: Literal["development", "staging", "production"] = "development"
 
