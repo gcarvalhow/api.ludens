@@ -30,6 +30,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["app*"]   # src/migrations não é pacote Python
 
 [tool.ruff]
 line-length = 100
@@ -37,7 +38,18 @@ target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+# UP (pyupgrade) fica de fora por ora: a base copiada de api.hub.dommed usa
+# typing.Callable/Sequence etc. Reavaliar quando a base estiver estabilizada.
+select = ["E", "F", "I", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Base portada de api.hub.dommed, quase verbatim (o repo de origem não tinha
+# linter). Mantida como está para facilitar futuros merges da base; código NOVO
+# de módulo segue a regra estrita. Reavaliar depois de a base estabilizar.
+"src/app/core/**" = ["I001", "E501"]
+"src/app/outbox/models.py" = ["I001"]
+"src/app/core/**/__init__.py" = ["F401"]
+"src/migrations/env.py" = ["I001", "E402"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
