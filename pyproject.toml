@@ -37,7 +37,9 @@ target-version = "py312"
 src = ["src", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+# UP (pyupgrade) fica de fora por ora: a base copiada de api.hub.dommed usa
+# typing.Callable/Sequence etc. Reavaliar quando a base estiver estabilizada.
+select = ["E", "F", "I", "B"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
