@@ -30,6 +30,7 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["app*"]   # src/migrations não é pacote Python
 
 [tool.ruff]
 line-length = 100
@@ -48,7 +49,7 @@ select = ["E", "F", "I", "B"]
 "src/app/core/**" = ["I001", "E501"]
 "src/app/outbox/models.py" = ["I001"]
 "src/app/core/**/__init__.py" = ["F401"]
-"migrations/env.py" = ["I001", "E402"]
+"src/migrations/env.py" = ["I001", "E402"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

@@ -68,7 +68,8 @@ src/app/
     relay.py             # polling in-process, chama os handlers
   modules/               # identity, catalog, booking, payment, notification
                          #   (entram por spec, uma feature por vez)
-migrations/              # Alembic (env.py + versions/)
+  migrations/            # Alembic (env.py + versions/)
+alembic.ini             # aponta para src/migrations; rodar da raiz do repo
 docker/                  # docker-compose.Development.yml
 tests/                   # testes de domínio (sem DB) e de usecase (Postgres real)
 ```
