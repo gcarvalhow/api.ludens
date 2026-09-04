@@ -8,8 +8,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import settings
+from app.core.domain.errors import AuthError, ConflictError, DomainError, ForbiddenError, GoneError
 from app.core.shared.errors import format_validation_errors
 from app.core.shared.health import seconds_since_beat
+from app.modules.identity.router import router as identity_router
 from app.outbox.relay import run as run_outbox_relay
 
 logger = logging.getLogger(__name__)
@@ -36,6 +38,20 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"detail": format_validation_errors(exc.errors())},
     )
 
+# Violacao de invariante de dominio -> HTTP. O dominio nunca conhece HTTP; a
+# traducao vive aqui (ver core/domain/errors.py e a skill backend-architecture).
+_DOMAIN_ERROR_STATUS = [
+    (ConflictError, 409),
+    (AuthError, 401),
+    (ForbiddenError, 403),
+    (GoneError, 410),
+]
+
+@app.exception_handler(DomainError)
+async def domain_exception_handler(request: Request, exc: DomainError):
+    status_code = next((s for t, s in _DOMAIN_ERROR_STATUS if isinstance(exc, t)), 422)
+    return JSONResponse(status_code=status_code, content={"detail": exc.message})
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
@@ -43,6 +59,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(identity_router)
 
 @app.get("/health")
 async def health():
