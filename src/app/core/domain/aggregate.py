@@ -1,5 +1,6 @@
 from collections import deque
 from typing import Callable, TypeVar
+from sqlalchemy.orm import reconstructor
 from app.core.domain.events import DomainEvent
 
 T = TypeVar("T", bound=DomainEvent)
@@ -13,6 +14,16 @@ class AggregateRoot:
     def __init__(self) -> None:
         self._version: int = 0
         self._events: deque[DomainEvent] = deque()
+
+    @reconstructor
+    def _init_on_load(self) -> None:
+        # O SQLAlchemy reidrata uma instância existente (find_by_id etc.) sem
+        # passar por __init__ — sem isto, todo raise_event() num agregado
+        # carregado do banco quebra com AttributeError. _version reinicia em 0
+        # na releitura; não há garantia de continuidade entre sessões (aceitável
+        # enquanto a tabela events não tiver constraint de unicidade por versão).
+        self._version = 0
+        self._events = deque()
 
     @property
     def version(self) -> int:

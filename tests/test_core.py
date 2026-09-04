@@ -66,3 +66,19 @@ def test_dequeue_events_drains_the_queue():
     assert [e.version for e in events] == [1, 2]
 
     assert thing.dequeue_events() == []
+
+
+def test_reconstructor_restores_state_the_orm_skips_on_load():
+    # __new__ sem __init__ é como o SQLAlchemy reidrata uma instância existente
+    # (find_by_id etc.) — _version/_events nunca são setados por __init__ nesse
+    # caminho. Sem o @reconstructor em AggregateRoot, raise_event() aqui
+    # quebraria com AttributeError.
+    thing = Thing.__new__(Thing)
+    assert "_version" not in vars(thing)
+
+    thing._init_on_load()
+    thing.id = uuid4()
+    thing.relabel("recarregado")
+
+    assert thing.version == 1
+    assert [type(e).__name__ for e in thing.dequeue_events()] == ["ThingRelabelled"]
