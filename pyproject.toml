@@ -42,6 +42,11 @@ src = ["src", "tests"]
 # typing.Callable/Sequence etc. Reavaliar quando a base estiver estabilizada.
 select = ["E", "F", "I", "B"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI: Depends/Security em default de argumento sao o padrao do framework
+# (injecao de dependencia) e nao devem cair no B008.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Security"]
+
 [tool.ruff.lint.per-file-ignores]
 # Base portada de api.hub.dommed, quase verbatim (o repo de origem não tinha
 # linter). Mantida como está para facilitar futuros merges da base; código NOVO
