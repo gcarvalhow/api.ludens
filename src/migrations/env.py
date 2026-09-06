@@ -12,8 +12,10 @@ from app.core.domain.model import Model
 # Importar todos os models para o SQLAlchemy registrar as tabelas no metadata.
 import app.outbox.models  # noqa: F401,E402
 
-# Cada feature acrescenta o import do próprio módulo aqui, ex.:
-# import app.modules.identity.domain.aggregates  # noqa: F401
+# Cada feature acrescenta o import do próprio módulo aqui.
+import app.modules.identity.domain.aggregates.buyer  # noqa: F401,E402
+import app.modules.identity.domain.entities.password_reset_token  # noqa: F401,E402
+import app.modules.identity.domain.entities.refresh_token  # noqa: F401,E402
 
 config = context.config
 
