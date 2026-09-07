@@ -4,8 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.outbox.models import Event
-from app.core.domain.model import Model
-from app.core.domain.events import DomainEvent
+from app.core.domain import DomainEvent, Model
 
 T = TypeVar("T", bound=Model)
 

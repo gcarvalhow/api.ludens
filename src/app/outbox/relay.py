@@ -6,7 +6,6 @@ from sqlalchemy import select
 
 from app.config import settings
 from app.database import AsyncSessionLocal
-
 from app.outbox.models import Event
 from app.outbox.registry import handlers_for
 

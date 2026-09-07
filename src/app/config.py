@@ -6,12 +6,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env.local", env_file_encoding="utf-8", extra="ignore"
     )
-
     environment: Literal["development", "staging", "production"] = "development"
 
     database_url: str
 
-    jwt_secret_key: str = "change-me-openssl-rand-hex-32"
+    jwt_secret_key: str
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
 

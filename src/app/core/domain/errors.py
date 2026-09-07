@@ -16,3 +16,6 @@ class ForbiddenError(DomainError):
 
 class GoneError(DomainError):
     pass
+
+class NotFoundError(DomainError):
+    pass

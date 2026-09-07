@@ -4,7 +4,7 @@ from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
 
-from app.core.domain.model import Model
+from app.core.domain import Model
 
 class Event(Model):
     __tablename__ = "events"

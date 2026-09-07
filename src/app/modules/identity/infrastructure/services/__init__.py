@@ -1,4 +1,4 @@
-from .password_hasher import PasswordHasher
+from .password_service import PasswordService
 from .token_service import TokenService
 
-__all__ = ["PasswordHasher", "TokenService"]
+__all__ = ["PasswordService", "TokenService"]

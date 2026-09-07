@@ -7,13 +7,13 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.config import settings
-from app.core.domain.model import Model
+from app.core.domain import Model
 
 # Importar todos os models para o SQLAlchemy registrar as tabelas no metadata.
 import app.outbox.models  # noqa: F401,E402
 
 # Cada feature acrescenta o import do próprio módulo aqui.
-import app.modules.identity.domain.aggregates.buyer  # noqa: F401,E402
+import app.modules.identity.domain.aggregates.user  # noqa: F401,E402
 import app.modules.identity.domain.entities.password_reset_token  # noqa: F401,E402
 import app.modules.identity.domain.entities.refresh_token  # noqa: F401,E402
 
@@ -24,13 +24,12 @@ if config.config_file_name is not None:
 
 target_metadata = Model.metadata
 
-
 def _get_url() -> str:
     url = settings.database_url
     if url.startswith("postgresql://"):
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
-    return url
 
+    return url
 
 def run_migrations_offline() -> None:
     context.configure(
@@ -39,15 +38,14 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
+
     with context.begin_transaction():
         context.run_migrations()
-
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(connection=connection, target_metadata=target_metadata)
     with context.begin_transaction():
         context.run_migrations()
-
 
 async def run_async_migrations() -> None:
     configuration = config.get_section(config.config_ini_section, {})
@@ -65,10 +63,8 @@ async def run_async_migrations() -> None:
 
     await connectable.dispose()
 
-
 def run_migrations_online() -> None:
     asyncio.run(run_async_migrations())
-
 
 if context.is_offline_mode():
     run_migrations_offline()
