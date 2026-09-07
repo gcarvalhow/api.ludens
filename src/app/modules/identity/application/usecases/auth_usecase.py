@@ -80,7 +80,7 @@ class AuthUseCase:
             # sessao propria porque esta request sofre rollback ao levantar 401.
             await self._revoke_all_sessions(record.buyer_id)
             raise AuthError("Sessão expirada.")
-        buyer = await self._buyers.find_by_id(record.buyer_id)
+        buyer = await self._buyers.find_by("id", record.buyer_id)
         if buyer is None:
             raise AuthError("Sessão expirada.")
         record.mark_rotated()
@@ -123,7 +123,7 @@ class AuthUseCase:
         if record is None:
             raise GoneError(_LINK_EXPIRED_MESSAGE)
         record.consume(datetime.now(timezone.utc))  # 410 se usado/expirado
-        buyer = await self._buyers.find_by_id(record.buyer_id)
+        buyer = await self._buyers.find_by("id", record.buyer_id)
         if buyer is None:
             raise GoneError(_LINK_EXPIRED_MESSAGE)
         buyer.reset_password(self._hasher.hash(req.password))
@@ -155,7 +155,7 @@ class AuthUseCase:
         # transacao da request, mas a revogacao precisa persistir.
         async with AsyncSessionLocal() as session, session.begin():
             buyers = BuyerRepository(session)
-            buyer = await buyers.find_by_id(buyer_id)
+            buyer = await buyers.find_by("id", buyer_id)
             if buyer is not None:
                 buyer.rotate_security_stamp()
                 await buyers.save(buyer)

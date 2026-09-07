@@ -70,7 +70,7 @@ def test_dequeue_events_drains_the_queue():
 
 def test_reconstructor_restores_state_the_orm_skips_on_load():
     # __new__ sem __init__ é como o SQLAlchemy reidrata uma instância existente
-    # (find_by_id etc.) — _version/_events nunca são setados por __init__ nesse
+    # (find_by etc.) — _version/_events nunca são setados por __init__ nesse
     # caminho. Sem o @reconstructor em AggregateRoot, raise_event() aqui
     # quebraria com AttributeError.
     thing = Thing.__new__(Thing)

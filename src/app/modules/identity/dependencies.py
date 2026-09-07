@@ -24,7 +24,7 @@ async def get_current_buyer(
     if credentials is None or not credentials.credentials:
         raise AuthError("Não autenticado.")
     payload = TokenService().decode_access(credentials.credentials)
-    buyer = await BuyerRepository(session).find_by_id(UUID(payload["sub"]))
+    buyer = await BuyerRepository(session).find_by("id", UUID(payload["sub"]))
     # Compara o security_stamp do token com o do banco: se divergir (logout,
     # troca/reset de senha), 401 mesmo com o JWT ainda valido.
     if buyer is None or str(buyer.security_stamp) != payload.get("security_stamp"):
