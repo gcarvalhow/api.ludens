@@ -61,7 +61,7 @@ src/app/
   core/
     domain/             # Model, AggregateRoot, DomainEvent — base de todo módulo
     infrastructure/     # BaseRepository / AggregateRepository
-    shared/             # errors, health (heartbeat), responses
+    shared/             # errors, responses
   outbox/
     models.py           # tabela events
     registry.py         # register(event_type) / handlers_for(event_type)

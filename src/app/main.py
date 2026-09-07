@@ -10,13 +10,10 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.core.domain.errors import AuthError, ConflictError, DomainError, ForbiddenError, GoneError
 from app.core.shared.errors import format_validation_errors
-from app.core.shared.health import seconds_since_beat
 from app.modules.identity.router import router as identity_router
 from app.outbox.relay import run as run_outbox_relay
 
 logger = logging.getLogger(__name__)
-
-BACKGROUND_TASK_MAX_AGE_SECONDS = {"outbox_relay": 20}
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -64,13 +61,4 @@ app.include_router(identity_router)
 
 @app.get("/health")
 async def health():
-    stale = [
-        name
-        for name, max_age in BACKGROUND_TASK_MAX_AGE_SECONDS.items()
-        if (age := seconds_since_beat(name)) is not None and age > max_age
-    ]
-
-    if stale:
-        return JSONResponse(status_code=503, content={"status": "unhealthy", "stale": stale})
-    
     return {"status": "ok", "environment": settings.environment}

@@ -13,7 +13,6 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 
 from app.config import settings
-from app.core.shared.health import beat
 from app.database import AsyncSessionLocal
 from app.outbox.models import Event
 from app.outbox.registry import handlers_for
@@ -58,7 +57,6 @@ async def _process_batch() -> None:
 async def run() -> None:
     interval = settings.outbox_relay_interval_seconds
     while True:
-        beat("outbox_relay")
         try:
             await _process_batch()
         except asyncio.CancelledError:
