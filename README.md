@@ -80,8 +80,9 @@ tests/                   # testes de domínio (sem DB) e de usecase (Postgres re
 
 ## Rodar localmente
 
-Pré-requisitos: **Docker** + **Docker Compose**, e **Python 3.12** se for rodar a
-API fora do contêiner.
+A API sobe **via contêiner** — é o runtime padrão local e de pipeline (ver
+[`docs.ludens/backend/overview.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/overview.md)).
+Não precisa de Python instalado na máquina, só **Docker** + **Docker Compose**.
 
 ```bash
 git clone https://github.com/gcarvalhow/api.ludens
@@ -90,30 +91,43 @@ cd api.ludens
 # 1. Configuração — copie o template e preencha o que estiver em branco
 cp .env.example .env.local
 #    gere a JWT_SECRET_KEY:  openssl rand -hex 32
+#    DATABASE_URL já vem apontando para o hostname do contêiner do Postgres
+#    (ludens-postgres-dev) — nunca localhost, a API roda na mesma rede Docker.
 
 # 2. Suba o banco
 docker compose -f docker/docker-compose.Development.yml up -d
 
-# 3. Instale as dependências e aplique as migrations
-pip install -e ".[dev]"
-alembic upgrade head
+# 3. Builde a imagem da API
+docker build -t api-ludens .
 
-# 4. Rode a API
-uvicorn app.main:app --reload
+# 4. Aplique as migrations (sobe um contêiner descartável, roda e sai)
+docker run --rm --network ludens-dev --env-file .env.local api-ludens \
+  alembic upgrade head
+
+# 5. Rode a API
+docker run -d --rm --name ludens-api --network ludens-dev \
+  --env-file .env.local -p 8000:8000 api-ludens
 ```
 
 - API em `http://localhost:8000` · OpenAPI interativo em `/docs` ·
   *health check* em `/health`.
-- Alternativa sem Python local — rode a API pelo contêiner:
-  `docker build -t api-ludens . && docker run --rm --network ludens-dev --env-file .env.local -p 8000:8000 api-ludens`
-  (o `.env.local` deve usar o hostname do contêiner do Postgres, já é o padrão).
+- Logs: `docker logs -f ludens-api` · Parar: `docker stop ludens-api`.
+- Depois de qualquer mudança de código, repita o passo 3 (rebuild da imagem)
+  antes do passo 5 — o contêiner não recarrega sozinho (sem `--reload`, é o
+  runtime de produção mesmo em dev).
+- Semear o usuário admin (fora do fluxo público, ver `src/scripts/seed_admin.py`):
+  ```bash
+  docker run --rm --network ludens-dev --env-file .env.local \
+    -e ADMIN_NAME="..." -e ADMIN_CPF="..." -e ADMIN_EMAIL="..." -e ADMIN_PASSWORD="..." \
+    api-ludens python /app/src/scripts/seed_admin.py
+  ```
 
 Recriar o banco do zero (mudança de schema sem migration incremental):
 
 ```bash
 docker compose -f docker/docker-compose.Development.yml down -v
 docker compose -f docker/docker-compose.Development.yml up -d
-alembic upgrade head
+docker run --rm --network ludens-dev --env-file .env.local api-ludens alembic upgrade head
 ```
 
 ## Variáveis de ambiente
@@ -140,8 +154,13 @@ reserva). O `.env.example` lista todas, comentadas até a feature entrar.
 
 ## Testes
 
+Ao contrário da API em si, os testes rodam com Python local (é como o CI
+roda também — ver [`backend/testing.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md)),
+não em contêiner:
+
 ```bash
-pytest -q         # testes de domínio (sem DB) e de usecase (Postgres real via contêiner)
+pip install -e ".[dev]"   # Python 3.12
+pytest -q                 # testes de domínio (sem DB) e de usecase (Postgres real via contêiner)
 ```
 
 O foco dos testes são as **regras de negócio da camada de domínio** — reserva e
