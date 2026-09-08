@@ -31,7 +31,7 @@ README cobre o suficiente para entender, rodar e contribuir com o backend.
 | Persistência | PostgreSQL · SQLAlchemy (async) · Alembic (migrations) |
 | Configuração | `pydantic-settings` (lê de `.env.local`) |
 | Runtime | Docker / Docker Compose |
-| Qualidade | Ruff (lint) · Pytest (testes) — ambos são portão de merge |
+| Qualidade | Pytest (testes) — portão de merge |
 
 ## Arquitetura em resumo
 
@@ -61,7 +61,7 @@ src/app/
   core/
     domain/             # Model, AggregateRoot, DomainEvent — base de todo módulo
     infrastructure/     # BaseRepository / AggregateRepository
-    shared/             # errors, health (heartbeat), responses
+    shared/             # errors, responses
   outbox/
     models.py           # tabela events
     registry.py         # register(event_type) / handlers_for(event_type)
@@ -105,7 +105,7 @@ uvicorn app.main:app --reload
 - API em `http://localhost:8000` · OpenAPI interativo em `/docs` ·
   *health check* em `/health`.
 - Alternativa sem Python local — rode a API pelo contêiner:
-  `docker build -t api-ludens . && docker run --rm --network dom-ludens-dev --env-file .env.local -p 8000:8000 api-ludens`
+  `docker build -t api-ludens . && docker run --rm --network ludens-dev --env-file .env.local -p 8000:8000 api-ludens`
   (o `.env.local` deve usar o hostname do contêiner do Postgres, já é o padrão).
 
 Recriar o banco do zero (mudança de schema sem migration incremental):
@@ -126,7 +126,7 @@ Lidas de `.env.local` por `src/app/config.py`. Classificação de segurança em
 | Variável | Classe | Padrão (dev) | Para que serve |
 | --- | --- | --- | --- |
 | `ENVIRONMENT` | CONFIG | `development` | `development` / `staging` / `production`. Fora de dev, ativa TLS no transporte com o banco. |
-| `DATABASE_URL` | SENSITIVE | `postgresql+asyncpg://ludens:ludens@dom-ludens-postgres-dev:5432/ludens` | Conexão async com o Postgres. O host é o **nome do contêiner**, nunca `localhost`. |
+| `DATABASE_URL` | SENSITIVE | `postgresql+asyncpg://ludens:ludens@ludens-postgres-dev:5432/ludens` | Conexão async com o Postgres. O host é o **nome do contêiner**, nunca `localhost`. |
 | `JWT_SECRET_KEY` | SECRET | *(vazio)* | Assina o *access token* JWT. Gere com `openssl rand -hex 32`. |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | CONFIG | `30` | Validade do *access token*. |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | CONFIG | `7` | Validade do *refresh token* (cookie `HttpOnly`). |
@@ -138,10 +138,9 @@ pagamento e e-mail, `RESERVATION_TTL_MINUTES` e `MAX_TICKETS_PER_CPF` para a
 reserva). O `.env.example` lista todas, comentadas até a feature entrar.
 **Nenhum segredo é versionado** — só o `.env.example`, com os campos SECRET em branco.
 
-## Testes e lint
+## Testes
 
 ```bash
-ruff check .      # estilo (obrigatório no pipeline)
 pytest -q         # testes de domínio (sem DB) e de usecase (Postgres real via contêiner)
 ```
 
@@ -150,8 +149,8 @@ compra, controle de disponibilidade (concorrência), preço de meia-entrada,
 reembolso. Estratégia completa em
 [`docs.ludens/backend/testing.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md).
 
-**Portões de merge** (CI em `push`/PR para `master`): `ruff check` verde ·
-`pytest -q` verde · `docker build` limpo · **1 aprovação** de outro desenvolvedor.
+**Portões de merge** (CI em `push`/PR para `master`): `pytest -q` verde ·
+`docker build` limpo · **1 aprovação** de outro desenvolvedor.
 
 ## Plugin do time e fluxo de trabalho
 
