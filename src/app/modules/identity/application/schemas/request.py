@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 class RegisterRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -11,10 +11,8 @@ class LoginRequest(BaseModel):
     password: str
 
 class ChangePasswordRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    current_password: str = Field(alias="currentPassword")
-    new_password: str = Field(alias="newPassword", min_length=8)
+    current_password: str
+    new_password: str = Field(min_length=8)
 
 class ForgotPasswordRequest(BaseModel):
     email: str

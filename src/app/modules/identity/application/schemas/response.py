@@ -1,11 +1,9 @@
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel
 
 class TokenResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    access_token: str = Field(serialization_alias="accessToken")
-    expires_in: int = Field(serialization_alias="expiresIn")
+    access_token: str
+    expires_in: int
 
 class UserResponse(BaseModel):
     id: UUID
