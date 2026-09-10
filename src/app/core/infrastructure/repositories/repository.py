@@ -21,6 +21,21 @@ class BaseRepository(Generic[T]):
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def find_by_id(self, entity_id: Any) -> T | None:
+        return await self.find_by("id", entity_id)
+
+    async def find_by_id_for_update(self, entity_id: Any) -> T | None:
+        # SELECT ... FOR UPDATE: trava a linha ate o fim da transacao. Usar em
+        # toda operacao que decide sob concorrencia (reservar/confirmar/liberar
+        # assento — RN05, e a edicao/cancelamento de sessao do catalog).
+        stmt = (
+            select(self.model)
+            .where(self.model.id == entity_id, self.model.is_active == True)  # noqa: E712
+            .with_for_update()
+        )
+        result = await self._session.execute(stmt)
+        return result.scalar_one_or_none()
+
     async def find_all(self, *, order_by: Sequence[str] | None = None) -> list[T]:
         return await self.find_all_by(order_by=order_by)
 
