@@ -1,13 +1,9 @@
 from datetime import date, datetime, time, timedelta, timezone
 from uuid import uuid4
 
-from app.modules.catalog.application.usecases.show_search_usecase import (
-    _CATALOG_TZ,
-    _card,
-    _floor_from,
-    _slugify,
-    _synopsis_short,
-)
+from app.modules.catalog.application.usecases.show_usecase import _card
+from app.modules.catalog.application.usecases.utils.dates import CATALOG_TZ, floor_from
+from app.modules.catalog.application.usecases.utils.text import slugify, synopsis_short
 from app.modules.catalog.infrastructure.repositories import ShowCardRow
 
 def _row(**overrides) -> ShowCardRow:
@@ -28,42 +24,42 @@ def _row(**overrides) -> ShowCardRow:
 def test_sinopse_curta_preserva_texto_dentro_do_limite():
     synopsis = "Uma comédia sobre um teatro comunitário."
 
-    assert _synopsis_short(synopsis) == synopsis
+    assert synopsis_short(synopsis) == synopsis
 
 def test_sinopse_curta_trunca_em_160_caracteres():
-    short = _synopsis_short("a" * 500)
+    short = synopsis_short("a" * 500)
 
     assert len(short) == 160
     assert short.endswith("…")
 
 def test_slug_de_genero_remove_acento_e_normaliza_separador():
-    assert _slugify("Comédia Musical") == "comedia-musical"
-    assert _slugify("DRAMA") == "drama"
-    assert _slugify("Infantil / Família") == "infantil-familia"
+    assert slugify("Comédia Musical") == "comedia-musical"
+    assert slugify("DRAMA") == "drama"
+    assert slugify("Infantil / Família") == "infantil-familia"
 
 def test_slug_colide_para_rotulos_equivalentes():
     # Por isso list_genres deduplica e o filtro casa em lista de rótulos.
-    assert _slugify("Comédia") == _slugify("comedia")
+    assert slugify("Comédia") == slugify("comedia")
 
 def test_filtro_de_data_no_passado_vira_agora():
     antes = datetime.now(timezone.utc)
 
     # RF01: buscar sessão passada não faz sentido — o piso nunca recua.
-    assert _floor_from(date(2020, 1, 1)) >= antes
+    assert floor_from(date(2020, 1, 1)) >= antes
 
 def test_sem_filtro_de_data_parte_de_agora():
     antes = datetime.now(timezone.utc)
 
-    assert _floor_from(None) >= antes
+    assert floor_from(None) >= antes
 
 def test_filtro_de_data_parte_da_meia_noite_de_brasilia():
     futuro = (datetime.now(timezone.utc) + timedelta(days=30)).date()
 
-    floor = _floor_from(futuro)
+    floor = floor_from(futuro)
 
     # Meia-noite de Brasília, não de UTC: senão o filtro "a partir do dia X"
     # engoliria as sessões da noite do dia anterior.
-    assert floor == datetime.combine(futuro, time.min, tzinfo=_CATALOG_TZ)
+    assert floor == datetime.combine(futuro, time.min, tzinfo=CATALOG_TZ)
     assert floor.astimezone(timezone.utc).hour == 3
 
 def test_card_limita_as_proximas_datas():

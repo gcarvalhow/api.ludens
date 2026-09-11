@@ -9,9 +9,19 @@ from app.core.domain.errors import NotFoundError
 
 from app.modules.catalog.domain.aggregates import Session
 from app.modules.catalog.application.schemas.request import SessionRequest
-from app.modules.catalog.application.schemas.response import AdminSessionResponse
-from app.modules.catalog.application.usecases.utils.money import cents_from_reais
+from app.modules.catalog.application.schemas.response import (
+    AdminSessionResponse,
+    SessionDetailResponse,
+    SessionShowRef,
+    TicketTypeResponse,
+)
+from app.modules.catalog.application.usecases.utils.money import cents_from_reais, reais_from_cents
+from app.modules.catalog.application.usecases.utils.published_show import require_published_show
 from app.modules.catalog.application.usecases.utils.session_response import session_response
+from app.modules.catalog.application.usecases.utils.session_availability import (
+    available_count,
+    session_status,
+)
 from app.modules.catalog.infrastructure.repositories import (
     SeatCounts,
     SeatCountsRepository,
@@ -72,6 +82,30 @@ class SessionUseCase:
 
         session.deactivate(tickets_sold=counts.tickets_sold)
         await self._session_repository.save(session)
+
+    async def get_session_detail(self, session_id: UUID) -> SessionDetailResponse:
+        session = await self._session_repository.find_by("id", session_id)
+        if session is None:
+            raise NotFoundError("Sessão não encontrada.")
+
+        show = await require_published_show(self._show_repository, session.show_id)
+        counts = await self._seat_counts_repository.for_sessions([session.id])
+        available = available_count(session, counts.get(session.id, SeatCounts(0, 0)))
+        now = datetime.now(timezone.utc)
+
+        return SessionDetailResponse(
+            id=session.id,
+            show=SessionShowRef(id=show.id, title=show.title),
+            starts_at=session.starts_at,
+            venue=session.venue,
+            capacity=session.capacity,
+            available_count=available,
+            status=session_status(session, available, now),
+            ticket_types=[
+                TicketTypeResponse(type="full", price=reais_from_cents(session.full_price_cents)),
+                TicketTypeResponse(type="half", price=reais_from_cents(session.half_price_cents)),
+            ],
+        )
 
     async def _lock(self, session_id: UUID) -> Session:
         session = await self._session_repository.find_by_id_for_update(session_id)
