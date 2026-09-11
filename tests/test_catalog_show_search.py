@@ -1,9 +1,9 @@
 from datetime import date, datetime, time, timedelta, timezone
 from uuid import uuid4
 
-from app.modules.catalog.application.usecases.show_usecase import _card
-from app.modules.catalog.application.usecases.utils.dates import CATALOG_TZ, floor_from
-from app.modules.catalog.application.usecases.utils.text import slugify, synopsis_short
+from app.modules.catalog.application.usecases.utils.genre_slug import slugify
+from app.modules.catalog.application.usecases.utils.search_floor import CATALOG_TZ, floor_from
+from app.modules.catalog.application.usecases.utils.show_card import card_response, synopsis_short
 from app.modules.catalog.infrastructure.repositories import ShowCardRow
 
 def _row(**overrides) -> ShowCardRow:
@@ -65,12 +65,12 @@ def test_filtro_de_data_parte_da_meia_noite_de_brasilia():
 def test_card_limita_as_proximas_datas():
     dates = [datetime(2026, 10, dia, 20, tzinfo=timezone.utc) for dia in range(1, 11)]
 
-    card = _card(_row(upcoming_dates=dates))
+    card = card_response(_row(upcoming_dates=dates))
 
     assert card.upcoming_dates == dates[:5]
 
 def test_card_converte_faixa_de_preco_para_reais():
-    card = _card(_row(price_min_cents=4000, price_max_cents=6050))
+    card = card_response(_row(price_min_cents=4000, price_max_cents=6050))
 
     assert card.price_min == 40.0
     assert card.price_max == 60.5

@@ -7,8 +7,8 @@ from datetime import datetime
 from sqlalchemy import distinct, func, select
 from sqlalchemy.dialects.postgresql import aggregate_order_by
 
-from app.core.infrastructure.repositories import AggregateRepository
 from app.modules.catalog.domain.aggregates import Session, Show
+from app.core.infrastructure.repositories import AggregateRepository
 from app.modules.catalog.domain.enumerations import SessionStatus, ShowStatus
 
 class ShowCardRow(NamedTuple):
@@ -28,9 +28,7 @@ class ShowSearchPage(NamedTuple):
 class ShowRepository(AggregateRepository[Show]):
     model = Show
 
-    async def search_with_upcoming(
-        self, *, floor: datetime, genres: list[str] | None, page: int, size: int
-    ) -> ShowSearchPage:
+    async def search_with_upcoming(self, *, floor: datetime, genres: list[str] | None, page: int, size: int) -> ShowSearchPage:
         next_at = func.min(Session.starts_at).label("next_at")
         stmt = (
             select(
@@ -45,14 +43,11 @@ class ShowRepository(AggregateRepository[Show]):
                 func.min(Session.full_price_cents).label("price_min_cents"),
                 func.max(Session.full_price_cents).label("price_max_cents"),
                 next_at,
-                # Conta os grupos antes do LIMIT — total da paginação numa query só.
                 func.count().over().label("total"),
             )
             .join(Session, Session.show_id == Show.id)
             .where(*self._filters(floor, genres))
             .group_by(Show.id)
-            # Desempate por id: sem ele, espetáculos com a mesma próxima sessão
-            # podem repetir ou sumir entre páginas.
             .order_by(next_at.asc(), Show.id.asc())
             .limit(size)
             .offset((page - 1) * size)
@@ -60,7 +55,6 @@ class ShowRepository(AggregateRepository[Show]):
 
         result = (await self._session.execute(stmt)).all()
         if not result:
-            # Página além do fim: o total ainda precisa sair certo para o paginador.
             return ShowSearchPage(rows=[], total=await self._count_in_catalog(floor, genres))
 
         rows = [
@@ -92,9 +86,6 @@ class ShowRepository(AggregateRepository[Show]):
 
     @staticmethod
     def _filters(floor: datetime, genres: list[str] | None) -> list:
-        # Em cartaz = espetáculo publicado com ao menos uma sessão à venda a
-        # partir de `floor`. Sessão passada não entra em data, preço nem na
-        # existência do espetáculo na vitrine.
         filters = [
             Show.is_active.is_(True),
             Show.status == ShowStatus.PUBLISHED,
