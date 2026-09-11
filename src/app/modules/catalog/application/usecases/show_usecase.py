@@ -44,19 +44,6 @@ _DEFAULT_SHOW_IMAGES = [
     "/images/show-placeholders/6.jpg",
 ]
 
-def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime) -> AdminShowResponse:
-    return AdminShowResponse(
-        id=show.id,
-        title=show.title,
-        synopsis=show.synopsis,
-        image_url=show.image_url,
-        genre=show.genre,
-        status=show.status.value,
-        sessions=[
-            session_response(s, counts_map.get(s.id, SeatCounts(0, 0)), now) for s in sessions
-        ],
-    )
-
 def _show_summary(show: Show) -> AdminShowSummaryResponse:
     return AdminShowSummaryResponse(
         id=show.id,
@@ -65,6 +52,14 @@ def _show_summary(show: Show) -> AdminShowSummaryResponse:
         image_url=show.image_url,
         genre=show.genre,
         status=show.status.value,
+    )
+
+def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime) -> AdminShowResponse:
+    return AdminShowResponse(
+        **_show_summary(show).model_dump(),
+        sessions=[
+            session_response(s, counts_map.get(s.id, SeatCounts(0, 0)), now) for s in sessions
+        ],
     )
 
 def _session_summary(session: Session, counts: SeatCounts, now: datetime) -> SessionSummaryResponse:
