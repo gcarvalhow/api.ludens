@@ -19,13 +19,15 @@ class AdminSessionResponse(BaseModel):
     reserved_open: int
     can_delete: bool
 
-class AdminShowResponse(BaseModel):
+class AdminShowSummaryResponse(BaseModel):
     id: UUID
     title: str
     synopsis: str
     image_url: str
     genre: str
     status: Literal["draft", "published"]
+
+class AdminShowResponse(AdminShowSummaryResponse):
     sessions: list[AdminSessionResponse]
 
 class ShowCardResponse(BaseModel):

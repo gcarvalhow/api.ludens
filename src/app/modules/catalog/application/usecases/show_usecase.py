@@ -12,6 +12,7 @@ from app.modules.catalog.domain.aggregates import Session, Show
 from app.modules.catalog.application.schemas.request import ShowRequest
 from app.modules.catalog.application.schemas.response import (
     AdminShowResponse,
+    AdminShowSummaryResponse,
     GenreResponse,
     PagedShowsResponse,
     SessionSummaryResponse,
@@ -43,14 +44,19 @@ _DEFAULT_SHOW_IMAGES = [
     "/images/show-placeholders/6.jpg",
 ]
 
-def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime) -> AdminShowResponse:
-    return AdminShowResponse(
+def _show_summary(show: Show) -> AdminShowSummaryResponse:
+    return AdminShowSummaryResponse(
         id=show.id,
         title=show.title,
         synopsis=show.synopsis,
         image_url=show.image_url,
         genre=show.genre,
         status=show.status.value,
+    )
+
+def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime) -> AdminShowResponse:
+    return AdminShowResponse(
+        **_show_summary(show).model_dump(),
         sessions=[
             session_response(s, counts_map.get(s.id, SeatCounts(0, 0)), now) for s in sessions
         ],
@@ -74,18 +80,13 @@ class ShowUseCase:
         self._session_repository = SessionRepository(session)
         self._seat_counts_repository = SeatCountsRepository(session)
 
-    async def list_shows(self) -> list[AdminShowResponse]:
+    async def list_shows(self) -> list[AdminShowSummaryResponse]:
         shows = await self._show_repository.find_all(order_by=["-created_at"])
-        sessions = await self._session_repository.find_all_for_shows([s.id for s in shows])
-        counts = await self._seat_counts_repository.for_sessions([s.id for s in sessions])
+        return [_show_summary(show) for show in shows]
 
-        now = datetime.now(timezone.utc)
-        grouped: dict[UUID, list[Session]] = {}
-
-        for sess in sessions:
-            grouped.setdefault(sess.show_id, []).append(sess)
-
-        return [_show_response(show, grouped.get(show.id, []), counts, now) for show in shows]
+    async def get_show(self, show_id: UUID) -> AdminShowResponse:
+        show = await self._require_show(show_id)
+        return await self._view_for(show)
 
     async def create_show(self, req: ShowRequest) -> AdminShowResponse:
         show = Show.create(
