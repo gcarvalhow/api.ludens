@@ -1,23 +1,22 @@
 from __future__ import annotations
 
 from uuid import uuid4
-
-from sqlalchemy import Enum as SAEnum
 from sqlalchemy import String
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.domain.aggregate import AggregateRoot
-from app.core.domain.events import DomainEvent
 from app.core.domain.model import Model
-from app.modules.catalog.domain.enumerations.show_status import ShowStatus
-from app.modules.catalog.domain.events.catalog_events import (
+from app.core.domain.events import DomainEvent
+from app.core.domain.aggregate import AggregateRoot
+
+from app.modules.catalog.domain.enumerations import ShowStatus
+from app.modules.catalog.domain.events import (
     ShowCreated,
     ShowDeactivated,
     ShowPublished,
     ShowUnpublished,
     ShowUpdated,
 )
-
 
 class Show(AggregateRoot, Model):
     __tablename__ = "shows"
@@ -26,6 +25,7 @@ class Show(AggregateRoot, Model):
     synopsis: Mapped[str] = mapped_column(String(5000), nullable=False)
     image_url: Mapped[str] = mapped_column(String(2048), nullable=False)
     genre: Mapped[str] = mapped_column(String(80), nullable=False)
+
     status: Mapped[ShowStatus] = mapped_column(
         SAEnum(
             ShowStatus,
@@ -41,6 +41,7 @@ class Show(AggregateRoot, Model):
     def create(cls, *, title: str, synopsis: str, image_url: str, genre: str) -> "Show":
         show = cls()
         show.id = uuid4()
+
         show.raise_event(
             lambda v: ShowCreated(
                 version=v, id=show.id, title=title, synopsis=synopsis,
@@ -58,18 +59,18 @@ class Show(AggregateRoot, Model):
         )
 
     def publish(self) -> None:
-        # Idempotente: publicar um espetáculo já publicado não muda nada.
         if self.status is ShowStatus.PUBLISHED:
             return
+        
         self.raise_event(lambda v: ShowPublished(version=v, id=self.id))
 
     def unpublish(self) -> None:
         if self.status is ShowStatus.DRAFT:
             return
+        
         self.raise_event(lambda v: ShowUnpublished(version=v, id=self.id))
 
     def deactivate(self) -> None:
-        # Soft delete. O usecase garante que não há sessão com venda antes.
         self.raise_event(lambda v: ShowDeactivated(version=v, id=self.id))
 
     def _apply(self, event: DomainEvent) -> None:

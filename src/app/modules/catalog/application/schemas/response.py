@@ -4,10 +4,9 @@ from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
-from app.core.shared.schema import CamelModel
+from pydantic import BaseModel
 
-
-class AdminSessionResponse(CamelModel):
+class AdminSessionResponse(BaseModel):
     id: UUID
     show_id: UUID
     starts_at: datetime
@@ -15,15 +14,12 @@ class AdminSessionResponse(CamelModel):
     capacity: int
     full_price: float
     half_price: float
-    # Derivado: "closed" quando starts_at já passou; "cancelled" quando
-    # cancelada; senão "on_sale".
     status: Literal["on_sale", "closed", "cancelled"]
     tickets_sold: int
     reserved_open: int
     can_delete: bool
 
-
-class AdminShowResponse(CamelModel):
+class AdminShowResponse(BaseModel):
     id: UUID
     title: str
     synopsis: str
