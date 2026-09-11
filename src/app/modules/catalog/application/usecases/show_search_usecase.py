@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,9 +11,15 @@ from app.modules.catalog.application.schemas.response import (
     PagedShowsResponse,
     ShowCardResponse,
 )
+from app.modules.catalog.application.usecases.utils.money import reais_from_cents
 from app.modules.catalog.infrastructure.repositories import ShowCardRow, ShowRepository
 
 _SYNOPSIS_MAX = 160
+_UPCOMING_DATES_MAX = 5
+
+# Horário de Brasília. Offset fixo, não ZoneInfo: o Brasil não observa horário de
+# verão desde 2019, e ZoneInfo exigiria o pacote `tzdata` no Windows.
+_CATALOG_TZ = timezone(timedelta(hours=-3))
 
 def _synopsis_short(synopsis: str) -> str:
     if len(synopsis) <= _SYNOPSIS_MAX:
@@ -31,8 +37,10 @@ def _floor_from(from_date: date | None) -> datetime:
     if from_date is None:
         return now
 
-    # Data no passado não faz sentido para sessão futura — vira "a partir de agora".
-    return max(datetime.combine(from_date, time.min, tzinfo=timezone.utc), now)
+    # A data vem do calendário do visitante, não em UTC: "a partir de 13/09" tem
+    # que começar à meia-noite de Brasília, senão pega a noite do dia 12.
+    # Data no passado não faz sentido para sessão futura — o piso nunca recua.
+    return max(datetime.combine(from_date, time.min, tzinfo=_CATALOG_TZ), now)
 
 def _card(row: ShowCardRow) -> ShowCardResponse:
     return ShowCardResponse(
@@ -41,9 +49,9 @@ def _card(row: ShowCardRow) -> ShowCardResponse:
         synopsis_short=_synopsis_short(row.synopsis),
         image_url=row.image_url,
         genre=row.genre,
-        upcoming_dates=row.upcoming_dates,
-        price_min=row.price_min_cents / 100,
-        price_max=row.price_max_cents / 100,
+        upcoming_dates=row.upcoming_dates[:_UPCOMING_DATES_MAX],
+        price_min=reais_from_cents(row.price_min_cents),
+        price_max=reais_from_cents(row.price_max_cents),
     )
 
 class ShowSearchUseCase:
@@ -74,11 +82,17 @@ class ShowSearchUseCase:
             floor=datetime.now(timezone.utc)
         )
 
-        return [GenreResponse(slug=_slugify(label), label=label) for label in labels]
+        # Rótulos distintos podem colidir no mesmo slug ("Comédia"/"comedia").
+        # O filtro casa por slug, então a vitrine não pode oferecer slug repetido.
+        by_slug: dict[str, str] = {}
+        for label in labels:
+            by_slug.setdefault(_slugify(label), label)
+
+        return [GenreResponse(slug=slug, label=label) for slug, label in by_slug.items()]
 
     async def _resolve_genres(self, slug: str, floor: datetime) -> list[str]:
-        # O gênero é texto livre no domínio; o contrato expõe slug. Dois rótulos
-        # podem gerar o mesmo slug ("Comédia"/"comedia"), por isso casa em lista.
+        # O gênero é texto livre no domínio; o contrato expõe slug. Casa em lista
+        # para cobrir os rótulos que compartilham o mesmo slug.
         labels = await self._show_repository.list_genres_in_catalog(floor=floor)
 
         return [label for label in labels if _slugify(label) == slug]

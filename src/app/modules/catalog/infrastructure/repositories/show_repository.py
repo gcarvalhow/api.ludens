@@ -25,17 +25,6 @@ class ShowSearchPage(NamedTuple):
     rows: list[ShowCardRow]
     total: int
 
-def _in_catalog(floor: datetime):
-    # Em cartaz = espetáculo publicado com ao menos uma sessão à venda a partir
-    # de `floor`. Sessão passada não entra em data, preço nem na existência.
-    return (
-        Show.is_active.is_(True),
-        Show.status == ShowStatus.PUBLISHED,
-        Session.is_active.is_(True),
-        Session.status == SessionStatus.ON_SALE,
-        Session.starts_at >= floor,
-    )
-
 class ShowRepository(AggregateRepository[Show]):
     model = Show
 
@@ -60,19 +49,19 @@ class ShowRepository(AggregateRepository[Show]):
                 func.count().over().label("total"),
             )
             .join(Session, Session.show_id == Show.id)
-            .where(*_in_catalog(floor))
+            .where(*self._filters(floor, genres))
             .group_by(Show.id)
-            .order_by(next_at.asc())
+            # Desempate por id: sem ele, espetáculos com a mesma próxima sessão
+            # podem repetir ou sumir entre páginas.
+            .order_by(next_at.asc(), Show.id.asc())
             .limit(size)
             .offset((page - 1) * size)
         )
 
-        if genres is not None:
-            stmt = stmt.where(Show.genre.in_(genres))
-
         result = (await self._session.execute(stmt)).all()
         if not result:
-            return ShowSearchPage(rows=[], total=0)
+            # Página além do fim: o total ainda precisa sair certo para o paginador.
+            return ShowSearchPage(rows=[], total=await self._count_in_catalog(floor, genres))
 
         rows = [
             ShowCardRow(
@@ -94,9 +83,39 @@ class ShowRepository(AggregateRepository[Show]):
         result = await self._session.execute(
             select(Show.genre)
             .join(Session, Session.show_id == Show.id)
-            .where(*_in_catalog(floor))
+            .where(*self._filters(floor, None))
             .group_by(Show.genre)
             .order_by(Show.genre.asc())
         )
 
         return list(result.scalars().all())
+
+    @staticmethod
+    def _filters(floor: datetime, genres: list[str] | None) -> list:
+        # Em cartaz = espetáculo publicado com ao menos uma sessão à venda a
+        # partir de `floor`. Sessão passada não entra em data, preço nem na
+        # existência do espetáculo na vitrine.
+        filters = [
+            Show.is_active.is_(True),
+            Show.status == ShowStatus.PUBLISHED,
+            Session.is_active.is_(True),
+            Session.status == SessionStatus.ON_SALE,
+            Session.starts_at >= floor,
+        ]
+
+        if genres is not None:
+            filters.append(Show.genre.in_(genres))
+
+        return filters
+
+    async def _count_in_catalog(self, floor: datetime, genres: list[str] | None) -> int:
+        grouped = (
+            select(Show.id)
+            .join(Session, Session.show_id == Show.id)
+            .where(*self._filters(floor, genres))
+            .group_by(Show.id)
+            .subquery()
+        )
+
+        result = await self._session.execute(select(func.count()).select_from(grouped))
+        return int(result.scalar_one())
