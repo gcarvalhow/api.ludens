@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
 from app.modules.catalog.application.schemas.response import GenreResponse, PagedShowsResponse
-from app.modules.catalog.application.usecases.show_search_usecase import ShowSearchUseCase
+from app.modules.catalog.application.usecases.show_usecase import ShowUseCase
 
 router = APIRouter(tags=["Catalog"])
 
@@ -19,10 +19,10 @@ async def search_shows(
     size: int = Query(default=12, ge=1, le=48),
     session: AsyncSession = Depends(get_db),
 ) -> PagedShowsResponse:
-    return await ShowSearchUseCase(session).search(
+    return await ShowUseCase(session).search(
         from_date=from_date, genre=genre, page=page, size=size
     )
 
 @router.get("/genres", response_model=list[GenreResponse])
 async def list_genres(session: AsyncSession = Depends(get_db)) -> list[GenreResponse]:
-    return await ShowSearchUseCase(session).list_genres()
+    return await ShowUseCase(session).list_genres()

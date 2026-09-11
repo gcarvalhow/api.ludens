@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from uuid import UUID
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,8 +10,16 @@ from app.core.domain.errors import ConflictError, NotFoundError
 
 from app.modules.catalog.domain.aggregates import Session, Show
 from app.modules.catalog.application.schemas.request import ShowRequest
-from app.modules.catalog.application.schemas.response import AdminShowResponse
+from app.modules.catalog.application.schemas.response import (
+    AdminShowResponse,
+    GenreResponse,
+    PagedShowsResponse,
+)
+from app.modules.catalog.application.usecases.utils.genre_slug import slugify
+from app.modules.catalog.application.usecases.utils.show_card import card_response
+from app.modules.catalog.application.usecases.utils.search_floor import floor_from
 from app.modules.catalog.application.usecases.utils.session_response import session_response
+
 from app.modules.catalog.infrastructure.repositories import (
     SeatCounts,
     SeatCountsRepository,
@@ -28,9 +36,7 @@ _DEFAULT_SHOW_IMAGES = [
     "/images/show-placeholders/6.jpg",
 ]
 
-def _show_response(
-    show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime
-) -> AdminShowResponse:
+def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime) -> AdminShowResponse:
     return AdminShowResponse(
         id=show.id,
         title=show.title,
@@ -109,6 +115,41 @@ class ShowUseCase:
 
         show.deactivate()
         await self._show_repository.save(show)
+
+    async def search(self, *, from_date: date | None, genre: str | None, page: int, size: int) -> PagedShowsResponse:
+        floor = floor_from(from_date)
+        genres: list[str] | None = None
+
+        if genre is not None:
+            genres = await self._resolve_genres(genre, floor)
+            if not genres:
+                return PagedShowsResponse(items=[], page=page, size=size, total=0)
+
+        result = await self._show_repository.search_with_upcoming(
+            floor=floor, genres=genres, page=page, size=size
+        )
+
+        return PagedShowsResponse(
+            items=[card_response(row) for row in result.rows],
+            page=page,
+            size=size,
+            total=result.total,
+        )
+
+    async def list_genres(self) -> list[GenreResponse]:
+        labels = await self._show_repository.list_genres_in_catalog(
+            floor=datetime.now(timezone.utc)
+        )
+
+        by_slug: dict[str, str] = {}
+        for label in labels:
+            by_slug.setdefault(slugify(label), label)
+
+        return [GenreResponse(slug=slug, label=label) for slug, label in by_slug.items()]
+
+    async def _resolve_genres(self, slug: str, floor: datetime) -> list[str]:
+        labels = await self._show_repository.list_genres_in_catalog(floor=floor)
+        return [label for label in labels if slugify(label) == slug]
 
     async def _require_show(self, show_id: UUID) -> Show:
         show = await self._show_repository.find_by("id", show_id)
