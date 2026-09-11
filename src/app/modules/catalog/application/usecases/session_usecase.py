@@ -2,47 +2,22 @@ from __future__ import annotations
 
 from uuid import UUID
 from datetime import datetime, timezone
-from decimal import ROUND_HALF_UP, Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.domain.errors import NotFoundError
 
 from app.modules.catalog.domain.aggregates import Session
-from app.modules.catalog.domain.enumerations import SessionStatus
 from app.modules.catalog.application.schemas.request import SessionRequest
 from app.modules.catalog.application.schemas.response import AdminSessionResponse
+from app.modules.catalog.application.usecases.utils.money import cents_from_reais
+from app.modules.catalog.application.usecases.utils.session_response import session_response
 from app.modules.catalog.infrastructure.repositories import (
     SeatCounts,
     SeatCountsRepository,
     SessionRepository,
     ShowRepository,
 )
-
-def _cents_from_reais(value: float) -> int:
-    return int((Decimal(str(value)) * 100).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-
-def _session_response(session: Session, counts: SeatCounts, now: datetime) -> AdminSessionResponse:
-    if session.status is SessionStatus.CANCELLED:
-        status = "cancelled"
-    elif session.starts_at <= now:
-        status = "closed"
-    else:
-        status = "on_sale"
-
-    return AdminSessionResponse(
-        id=session.id,
-        show_id=session.show_id,
-        starts_at=session.starts_at,
-        venue=session.venue,
-        capacity=session.capacity,
-        full_price=session.full_price_cents / 100,
-        half_price=session.half_price_cents / 100,
-        status=status,
-        tickets_sold=counts.tickets_sold,
-        reserved_open=counts.reserved_open,
-        can_delete=counts.tickets_sold == 0,
-    )
 
 class SessionUseCase:
     def __init__(self, session: AsyncSession) -> None:
@@ -61,12 +36,12 @@ class SessionUseCase:
             starts_at=req.starts_at,
             venue=req.venue,
             capacity=req.capacity,
-            full_price_cents=_cents_from_reais(req.full_price),
+            full_price_cents=cents_from_reais(req.full_price),
             now=now,
         )
 
         await self._session_repository.save(session)
-        return _session_response(session, SeatCounts(0, 0), now)
+        return session_response(session, SeatCounts(0, 0), now)
 
     async def update_session(self, session_id: UUID, req: SessionRequest) -> AdminSessionResponse:
         session = await self._lock(session_id)
@@ -77,13 +52,13 @@ class SessionUseCase:
             starts_at=req.starts_at,
             venue=req.venue,
             capacity=req.capacity,
-            full_price_cents=_cents_from_reais(req.full_price),
+            full_price_cents=cents_from_reais(req.full_price),
             committed=counts.tickets_sold + counts.reserved_open,
             now=now,
         )
 
         await self._session_repository.save(session)
-        return _session_response(session, counts, now)
+        return session_response(session, counts, now)
 
     async def cancel_session(self, session_id: UUID) -> None:
         session = await self._lock(session_id)

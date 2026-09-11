@@ -9,9 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.domain.errors import ConflictError, NotFoundError
 
 from app.modules.catalog.domain.aggregates import Session, Show
-from app.modules.catalog.domain.enumerations import SessionStatus
 from app.modules.catalog.application.schemas.request import ShowRequest
-from app.modules.catalog.application.schemas.response import AdminSessionResponse, AdminShowResponse
+from app.modules.catalog.application.schemas.response import AdminShowResponse
+from app.modules.catalog.application.usecases.utils.session_response import session_response
 from app.modules.catalog.infrastructure.repositories import (
     SeatCounts,
     SeatCountsRepository,
@@ -28,28 +28,6 @@ _DEFAULT_SHOW_IMAGES = [
     "/images/show-placeholders/6.jpg",
 ]
 
-def _session_response(session: Session, counts: SeatCounts, now: datetime) -> AdminSessionResponse:
-    if session.status is SessionStatus.CANCELLED:
-        status = "cancelled"
-    elif session.starts_at <= now:
-        status = "closed"
-    else:
-        status = "on_sale"
-
-    return AdminSessionResponse(
-        id=session.id,
-        show_id=session.show_id,
-        starts_at=session.starts_at,
-        venue=session.venue,
-        capacity=session.capacity,
-        full_price=session.full_price_cents / 100,
-        half_price=session.half_price_cents / 100,
-        status=status,
-        tickets_sold=counts.tickets_sold,
-        reserved_open=counts.reserved_open,
-        can_delete=counts.tickets_sold == 0,
-    )
-
 def _show_response(
     show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime
 ) -> AdminShowResponse:
@@ -61,7 +39,7 @@ def _show_response(
         genre=show.genre,
         status=show.status.value,
         sessions=[
-            _session_response(s, counts_map.get(s.id, SeatCounts(0, 0)), now) for s in sessions
+            session_response(s, counts_map.get(s.id, SeatCounts(0, 0)), now) for s in sessions
         ],
     )
 
