@@ -1,0 +1,28 @@
+from datetime import datetime
+
+from app.modules.catalog.domain.aggregates import Session
+from app.modules.catalog.domain.enumerations import SessionStatus
+from app.modules.catalog.application.schemas.response import AdminSessionResponse
+from app.modules.catalog.infrastructure.repositories import SeatCounts
+
+def session_response(session: Session, counts: SeatCounts, now: datetime) -> AdminSessionResponse:
+    if session.status is SessionStatus.CANCELLED:
+        status = "cancelled"
+    elif session.starts_at <= now:
+        status = "closed"
+    else:
+        status = "on_sale"
+
+    return AdminSessionResponse(
+        id=session.id,
+        show_id=session.show_id,
+        starts_at=session.starts_at,
+        venue=session.venue,
+        capacity=session.capacity,
+        full_price=session.full_price_cents / 100,
+        half_price=session.half_price_cents / 100,
+        status=status,
+        tickets_sold=counts.tickets_sold,
+        reserved_open=counts.reserved_open,
+        can_delete=counts.tickets_sold == 0,
+    )

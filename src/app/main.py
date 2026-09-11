@@ -11,6 +11,7 @@ from app.config import settings
 from app.core.shared import format_validation_errors
 from app.outbox.relay import run as run_outbox_relay
 from app.modules.identity.router import router as identity_router
+from app.modules.catalog.router import router as catalog_router
 from app.core.domain import AuthError, ConflictError, DomainError, ForbiddenError, GoneError, NotFoundError
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,7 @@ app.add_middleware(
 )
 
 app.include_router(identity_router)
+app.include_router(catalog_router)
 
 @app.get("/health")
 async def health():
