@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Literal
 from uuid import UUID
+from typing import Literal
+from datetime import datetime
 
 from pydantic import BaseModel
 
@@ -27,3 +27,23 @@ class AdminShowResponse(BaseModel):
     genre: str
     status: Literal["draft", "published"]
     sessions: list[AdminSessionResponse]
+
+class ShowCardResponse(BaseModel):
+    id: UUID
+    title: str
+    synopsis_short: str
+    image_url: str
+    genre: str
+    upcoming_dates: list[datetime]
+    price_min: float
+    price_max: float
+
+class PagedShowsResponse(BaseModel):
+    items: list[ShowCardResponse]
+    page: int
+    size: int
+    total: int
+
+class GenreResponse(BaseModel):
+    slug: str
+    label: str

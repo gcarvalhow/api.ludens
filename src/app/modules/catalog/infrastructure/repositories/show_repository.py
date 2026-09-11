@@ -1,7 +1,112 @@
 from __future__ import annotations
 
+from uuid import UUID
+from typing import NamedTuple
+from datetime import datetime
+
+from sqlalchemy import distinct, func, select
+from sqlalchemy.dialects.postgresql import aggregate_order_by
+
+from app.modules.catalog.domain.aggregates import Session, Show
 from app.core.infrastructure.repositories import AggregateRepository
-from app.modules.catalog.domain.aggregates import Show
+from app.modules.catalog.domain.enumerations import SessionStatus, ShowStatus
+
+class ShowCardRow(NamedTuple):
+    id: UUID
+    title: str
+    synopsis: str
+    image_url: str
+    genre: str
+    upcoming_dates: list[datetime]
+    price_min_cents: int
+    price_max_cents: int
+
+class ShowSearchPage(NamedTuple):
+    rows: list[ShowCardRow]
+    total: int
 
 class ShowRepository(AggregateRepository[Show]):
     model = Show
+
+    async def search_with_upcoming(self, *, floor: datetime, genres: list[str] | None, page: int, size: int) -> ShowSearchPage:
+        next_at = func.min(Session.starts_at).label("next_at")
+        stmt = (
+            select(
+                Show.id,
+                Show.title,
+                Show.synopsis,
+                Show.image_url,
+                Show.genre,
+                func.array_agg(
+                    aggregate_order_by(distinct(Session.starts_at), Session.starts_at.asc())
+                ).label("upcoming_dates"),
+                func.min(Session.full_price_cents).label("price_min_cents"),
+                func.max(Session.full_price_cents).label("price_max_cents"),
+                next_at,
+                func.count().over().label("total"),
+            )
+            .join(Session, Session.show_id == Show.id)
+            .where(*self._filters(floor, genres))
+            .group_by(Show.id)
+            .order_by(next_at.asc(), Show.id.asc())
+            .limit(size)
+            .offset((page - 1) * size)
+        )
+
+        result = (await self._session.execute(stmt)).all()
+        if not result:
+            return ShowSearchPage(rows=[], total=await self._count_in_catalog(floor, genres))
+
+        rows = [
+            ShowCardRow(
+                id=row.id,
+                title=row.title,
+                synopsis=row.synopsis,
+                image_url=row.image_url,
+                genre=row.genre,
+                upcoming_dates=list(row.upcoming_dates),
+                price_min_cents=row.price_min_cents,
+                price_max_cents=row.price_max_cents,
+            )
+            for row in result
+        ]
+
+        return ShowSearchPage(rows=rows, total=int(result[0].total))
+
+    async def list_genres_in_catalog(self, *, floor: datetime) -> list[str]:
+        result = await self._session.execute(
+            select(Show.genre)
+            .join(Session, Session.show_id == Show.id)
+            .where(*self._filters(floor, None))
+            .group_by(Show.genre)
+            .order_by(Show.genre.asc())
+        )
+
+        return list(result.scalars().all())
+
+    @staticmethod
+    def _filters(floor: datetime, genres: list[str] | None) -> list:
+        filters = [
+            Show.is_active.is_(True),
+            Show.status == ShowStatus.PUBLISHED,
+            Session.is_active.is_(True),
+            Session.status == SessionStatus.ON_SALE,
+            Session.starts_at >= floor,
+        ]
+
+        if genres is not None:
+            filters.append(Show.genre.in_(genres))
+
+        return filters
+
+    async def _count_in_catalog(self, floor: datetime, genres: list[str] | None) -> int:
+        grouped = (
+            select(Show.id)
+            .join(Session, Session.show_id == Show.id)
+            .where(*self._filters(floor, genres))
+            .group_by(Show.id)
+            .subquery()
+        )
+
+        result = await self._session.execute(select(func.count()).select_from(grouped))
+        return int(result.scalar_one())
