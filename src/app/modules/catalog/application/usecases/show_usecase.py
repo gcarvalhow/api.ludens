@@ -14,11 +14,18 @@ from app.modules.catalog.application.schemas.response import (
     AdminShowResponse,
     GenreResponse,
     PagedShowsResponse,
+    SessionSummaryResponse,
+    ShowDetailResponse,
 )
 from app.modules.catalog.application.usecases.utils.genre_slug import slugify
 from app.modules.catalog.application.usecases.utils.show_card import card_response
 from app.modules.catalog.application.usecases.utils.search_floor import floor_from
+from app.modules.catalog.application.usecases.utils.published_show import require_published_show
 from app.modules.catalog.application.usecases.utils.session_response import session_response
+from app.modules.catalog.application.usecases.utils.session_availability import (
+    available_count,
+    session_status,
+)
 
 from app.modules.catalog.infrastructure.repositories import (
     SeatCounts,
@@ -47,6 +54,18 @@ def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, S
         sessions=[
             session_response(s, counts_map.get(s.id, SeatCounts(0, 0)), now) for s in sessions
         ],
+    )
+
+def _session_summary(session: Session, counts: SeatCounts, now: datetime) -> SessionSummaryResponse:
+    available = available_count(session, counts)
+
+    return SessionSummaryResponse(
+        id=session.id,
+        starts_at=session.starts_at,
+        venue=session.venue,
+        capacity=session.capacity,
+        available_count=available,
+        status=session_status(session, available, now),
     )
 
 class ShowUseCase:
@@ -146,6 +165,28 @@ class ShowUseCase:
             by_slug.setdefault(slugify(label), label)
 
         return [GenreResponse(slug=slug, label=label) for slug, label in by_slug.items()]
+
+    async def get_show_detail(self, show_id: UUID) -> ShowDetailResponse:
+        show = await require_published_show(self._show_repository, show_id)
+        now = datetime.now(timezone.utc)
+
+        sessions = [
+            s
+            for s in await self._session_repository.find_all_for_shows([show.id])
+            if s.starts_at > now
+        ]
+        counts = await self._seat_counts_repository.for_sessions([s.id for s in sessions])
+
+        return ShowDetailResponse(
+            id=show.id,
+            title=show.title,
+            synopsis=show.synopsis,
+            image_url=show.image_url,
+            genre=show.genre,
+            sessions=[
+                _session_summary(s, counts.get(s.id, SeatCounts(0, 0)), now) for s in sessions
+            ],
+        )
 
     async def _resolve_genres(self, slug: str, floor: datetime) -> list[str]:
         labels = await self._show_repository.list_genres_in_catalog(floor=floor)

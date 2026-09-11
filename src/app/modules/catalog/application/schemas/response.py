@@ -47,3 +47,37 @@ class PagedShowsResponse(BaseModel):
 class GenreResponse(BaseModel):
     slug: str
     label: str
+
+class SessionSummaryResponse(BaseModel):
+    id: UUID
+    starts_at: datetime
+    venue: str
+    capacity: int
+    available_count: int
+    status: Literal["on_sale", "sold_out", "closed", "cancelled"]
+
+class ShowDetailResponse(BaseModel):
+    id: UUID
+    title: str
+    synopsis: str
+    image_url: str
+    genre: str
+    sessions: list[SessionSummaryResponse]
+
+class TicketTypeResponse(BaseModel):
+    type: Literal["full", "half"]
+    price: float
+
+class SessionShowRef(BaseModel):
+    id: UUID
+    title: str
+
+class SessionDetailResponse(BaseModel):
+    id: UUID
+    show: SessionShowRef
+    starts_at: datetime
+    venue: str
+    capacity: int
+    available_count: int
+    status: Literal["on_sale", "sold_out", "closed", "cancelled"]
+    ticket_types: list[TicketTypeResponse]
