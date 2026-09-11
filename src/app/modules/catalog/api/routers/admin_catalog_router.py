@@ -7,7 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
 from app.modules.catalog.application.schemas.request import ShowRequest, SessionRequest
-from app.modules.catalog.application.schemas.response import AdminSessionResponse, AdminShowResponse
+from app.modules.catalog.application.schemas.response import (
+    AdminSessionResponse,
+    AdminShowResponse,
+    AdminShowSummaryResponse,
+)
 from app.modules.catalog.application.usecases.session_usecase import SessionUseCase
 from app.modules.catalog.application.usecases.show_usecase import ShowUseCase
 from app.modules.identity.dependencies import require_admin
@@ -18,9 +22,13 @@ router = APIRouter(
     dependencies=[Depends(require_admin)],
 )
 
-@router.get("/shows", response_model=list[AdminShowResponse])
-async def list_shows(session: AsyncSession = Depends(get_db)) -> list[AdminShowResponse]:
+@router.get("/shows", response_model=list[AdminShowSummaryResponse])
+async def list_shows(session: AsyncSession = Depends(get_db)) -> list[AdminShowSummaryResponse]:
     return await ShowUseCase(session).list_shows()
+
+@router.get("/shows/{show_id}", response_model=AdminShowResponse)
+async def get_show(show_id: UUID, session: AsyncSession = Depends(get_db)) -> AdminShowResponse:
+    return await ShowUseCase(session).get_show(show_id)
 
 @router.post("/shows", response_model=AdminShowResponse, status_code=201)
 async def create_show(
