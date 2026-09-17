@@ -19,6 +19,15 @@ class Settings(BaseSettings):
 
     outbox_relay_interval_seconds: int = 2
 
+    email_backend: Literal["acs", "smtp"] = "smtp"
+    email_from_address: str = "no-reply@ludens.local"
+    email_from_name: str = "Ludens"
+    acs_connection_string: str = ""
+    acs_sender_address: str = ""
+    smtp_host: str = "localhost"
+    smtp_port: int = 1025
+    frontend_base_url: str = "http://localhost:3000"
+
     @property
     def db_connect_args(self) -> dict:
         return {"ssl": "require"} if self.environment != "development" else {}

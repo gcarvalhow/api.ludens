@@ -15,6 +15,7 @@ from app.core.domain import AuthError, ConflictError, DomainError, ForbiddenErro
 
 from app.modules.catalog.router import router as catalog_router
 from app.modules.identity.router import router as identity_router
+from app.modules.notification import handlers as notification_handlers  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
