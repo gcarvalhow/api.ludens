@@ -16,6 +16,8 @@ import app.outbox.models  # noqa: F401,E402
 import app.modules.identity.domain.aggregates.user  # noqa: F401,E402
 import app.modules.identity.domain.entities.password_reset_token  # noqa: F401,E402
 import app.modules.identity.domain.entities.refresh_token  # noqa: F401,E402
+import app.modules.identity.domain.entities.account_deletion_token  # noqa: F401,E402
+import app.modules.identity.domain.entities.email_change_token  # noqa: F401,E402
 
 # catalog-admin-management:
 import app.modules.catalog.domain.aggregates.show  # noqa: F401,E402

@@ -8,8 +8,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.domain import AggregateRoot, DomainEvent, Model
 from app.modules.identity.domain.events import (
+    AccountDeletionRequested,
+    EmailChangeRequested,
+    EmailChanged,
     PasswordResetRequested,
+    UserDeactivated,
     UserPasswordChanged,
+    UserProfileUpdated,
     UserRegistered,
     UserSecurityStampRotated,
 )
@@ -69,6 +74,32 @@ class User(AggregateRoot, Model):
             )
         )
 
+    def update_profile(self, name: str) -> None:
+        self.raise_event(lambda v: UserProfileUpdated(version=v, id=self.id, name=name))
+
+    def request_email_change(self, new_email: str, token: str, expires_at: datetime) -> None:
+        self.raise_event(
+            lambda v: EmailChangeRequested(
+                version=v, id=self.id, old_email=self.email, new_email=new_email,
+                token=token, expires_at=expires_at,
+            )
+        )
+
+    def apply_email_change(self, new_email: str) -> None:
+        self.raise_event(lambda v: EmailChanged(version=v, id=self.id, new_email=new_email))
+        self.rotate_security_stamp()
+
+    def request_account_deletion(self, token: str, expires_at: datetime) -> None:
+        self.raise_event(
+            lambda v: AccountDeletionRequested(
+                version=v, id=self.id, email=self.email, token=token, expires_at=expires_at
+            )
+        )
+
+    def deactivate(self) -> None:
+        self.raise_event(lambda v: UserDeactivated(version=v, id=self.id))
+        self.rotate_security_stamp()
+
     def _apply(self, event: DomainEvent) -> None:
         handler = getattr(self, f"_when_{type(event).__name__}", None)
         if handler:
@@ -88,3 +119,12 @@ class User(AggregateRoot, Model):
 
     def _when_UserSecurityStampRotated(self, e: UserSecurityStampRotated) -> None:
         self.security_stamp = e.security_stamp
+
+    def _when_UserProfileUpdated(self, e: UserProfileUpdated) -> None:
+        self.name = e.name
+
+    def _when_EmailChanged(self, e: EmailChanged) -> None:
+        self.email = e.new_email
+
+    def _when_UserDeactivated(self, _event: UserDeactivated) -> None:
+        self.is_active = False
