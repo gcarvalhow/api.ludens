@@ -22,7 +22,7 @@ from app.modules.identity.application.usecases.user_usecase import UserUseCase
 
 router = APIRouter(prefix="/identity/users", tags=["02.Identity - User"])
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 async def register(body: RegisterRequest, response: Response, session: AsyncSession = Depends(get_db)) -> TokenResponse:
     token, raw_refresh = await UserUseCase(session).register(body)
     set_refresh_cookie(response, raw_refresh)
