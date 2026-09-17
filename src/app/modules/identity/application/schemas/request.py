@@ -20,3 +20,9 @@ class ForgotPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     token: str
     password: str = Field(min_length=8)
+
+class UpdateProfileRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+
+class RequestEmailChangeRequest(BaseModel):
+    new_email: str = Field(max_length=254)
