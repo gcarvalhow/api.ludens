@@ -7,6 +7,7 @@ from datetime import date, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.domain.errors import ConflictError, NotFoundError
+from app.core.shared.pagination import Page, PaginationParams
 
 from app.modules.catalog.domain.aggregates import Session, Show
 from app.modules.catalog.application.schemas.request import ShowRequest
@@ -14,7 +15,7 @@ from app.modules.catalog.application.schemas.response import (
     AdminShowResponse,
     AdminShowSummaryResponse,
     GenreResponse,
-    PagedShowsResponse,
+    ShowCardResponse,
     SessionSummaryResponse,
     ShowDetailResponse,
 )
@@ -123,7 +124,7 @@ class ShowUseCase:
 
     async def delete_show(self, show_id: UUID) -> None:
         show = await self._require_show(show_id)
-        sessions = await self._session_repository.find_all_for_shows([show.id])
+        sessions = await self._session_repository.find_all_by(show_id=show.id, order_by=["starts_at"])
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
 
         if any(counts.get(s.id, SeatCounts(0, 0)).tickets_sold > 0 for s in sessions):
@@ -134,24 +135,24 @@ class ShowUseCase:
         show.deactivate()
         await self._show_repository.save(show)
 
-    async def search(self, *, from_date: date | None, genre: str | None, page: int, size: int) -> PagedShowsResponse:
+    async def search(self, *, from_date: date | None, genre: str | None, pagination: PaginationParams) -> Page[ShowCardResponse]:
         floor = floor_from(from_date)
         genres: list[str] | None = None
 
         if genre is not None:
             genres = await self._resolve_genres(genre, floor)
             if not genres:
-                return PagedShowsResponse(items=[], page=page, size=size, total=0)
+                return Page[ShowCardResponse](items=[], page=pagination.page, size=pagination.size, total=0)
 
-        result = await self._show_repository.search_with_upcoming(
-            floor=floor, genres=genres, page=page, size=size
+        rows, total = await self._show_repository.search_with_upcoming(
+            floor=floor, genres=genres, page=pagination.page, size=pagination.size
         )
 
-        return PagedShowsResponse(
-            items=[card_response(row) for row in result.rows],
-            page=page,
-            size=size,
-            total=result.total,
+        return Page[ShowCardResponse](
+            items=[card_response(row) for row in rows],
+            page=pagination.page,
+            size=pagination.size,
+            total=total,
         )
 
     async def list_genres(self) -> list[GenreResponse]:
@@ -171,7 +172,7 @@ class ShowUseCase:
 
         sessions = [
             s
-            for s in await self._session_repository.find_all_for_shows([show.id])
+            for s in await self._session_repository.find_all_by(show_id=show.id, order_by=["starts_at"])
             if s.starts_at > now
         ]
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
@@ -199,7 +200,7 @@ class ShowUseCase:
         return show
 
     async def _view_for(self, show: Show) -> AdminShowResponse:
-        sessions = await self._session_repository.find_all_for_shows([show.id])
+        sessions = await self._session_repository.find_all_by(show_id=show.id, order_by=["starts_at"])
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
 
         return _show_response(show, sessions, counts, datetime.now(timezone.utc))
