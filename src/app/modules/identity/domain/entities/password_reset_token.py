@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.domain import GoneError, Model
+from app.core.domain import Model
 
 class PasswordResetToken(Model):
     __tablename__ = "password_reset_tokens"
@@ -14,8 +14,8 @@ class PasswordResetToken(Model):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    def is_valid(self, now: datetime) -> bool:
+        return self.used_at is None and self.expires_at > now
+
     def consume(self, now: datetime) -> None:
-        if self.used_at is not None or self.expires_at <= now:
-            raise GoneError("Este link não é mais válido, solicite um novo.")
-        
         self.used_at = now

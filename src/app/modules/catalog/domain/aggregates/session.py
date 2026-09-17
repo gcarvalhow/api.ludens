@@ -9,7 +9,6 @@ from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, Integer, String, Uu
 from app.core.domain.model import Model
 from app.core.domain.events import DomainEvent
 from app.core.domain.aggregate import AggregateRoot
-from app.core.domain.errors import ConflictError, DomainError
 
 from app.modules.catalog.domain.enumerations import SessionStatus
 from app.modules.catalog.domain.events import (
@@ -56,13 +55,7 @@ class Session(AggregateRoot, Model):
         venue: str,
         capacity: int,
         full_price_cents: int,
-        now: datetime,
     ) -> "Session":
-        if starts_at <= now:
-            raise DomainError("A data da sessão deve ser futura.")
-        if capacity <= 0:
-            raise DomainError("A capacidade deve ser maior que zero.")
-
         session = cls()
         session.id = uuid4()
 
@@ -82,18 +75,7 @@ class Session(AggregateRoot, Model):
         venue: str,
         capacity: int,
         full_price_cents: int,
-        committed: int,
-        now: datetime,
     ) -> None:
-        if self.status is SessionStatus.CANCELLED:
-            raise ConflictError("Não é possível editar uma sessão cancelada.")
-
-        if starts_at <= now:
-            raise DomainError("A data da sessão deve ser futura.")
-
-        if capacity < committed:
-            raise ConflictError("Já há ingressos comprometidos nesta sessão.")
-
         self.raise_event(
             lambda v: SessionUpdated(
                 version=v, id=self.id, starts_at=starts_at, venue=venue,
@@ -102,9 +84,6 @@ class Session(AggregateRoot, Model):
         )
 
     def cancel(self) -> None:
-        if self.status is SessionStatus.CANCELLED:
-            raise ConflictError("A sessão já está cancelada.")
-        
         self.raise_event(
             lambda v: SessionCancelled(
                 version=v, id=self.id, show_id=self.show_id,
@@ -112,11 +91,7 @@ class Session(AggregateRoot, Model):
             )
         )
 
-    def deactivate(self, *, tickets_sold: int) -> None:
-        # Core RF08 rule: a session with tickets sold must NOT be deleted.
-        if tickets_sold > 0:
-            raise ConflictError("Cancele a sessão em vez de excluir.")
-        
+    def deactivate(self) -> None:
         self.raise_event(lambda v: SessionDeactivated(version=v, id=self.id))
 
     def _apply(self, event: DomainEvent) -> None:
