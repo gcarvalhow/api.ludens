@@ -9,18 +9,6 @@ from app.modules.catalog.domain.aggregates import Session
 class SessionRepository(AggregateRepository[Session]):
     model = Session
 
-    async def find_all_for_shows(self, show_ids: list[UUID]) -> list[Session]:
-        if not show_ids:
-            return []
-
-        result = await self._session.execute(
-            select(Session)
-            .where(Session.show_id.in_(show_ids), Session.is_active.is_(True))
-            .order_by(Session.starts_at.asc())
-        )
-
-        return list(result.scalars().all())
-
     async def find_by_id_for_update(self, session_id: UUID) -> Session | None:
         # SELECT ... FOR UPDATE: locks the row until the transaction ends — RN05,
         # needed when editing/cancelling/deleting a session under concurrency.

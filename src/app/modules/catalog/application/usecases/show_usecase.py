@@ -123,7 +123,7 @@ class ShowUseCase:
 
     async def delete_show(self, show_id: UUID) -> None:
         show = await self._require_show(show_id)
-        sessions = await self._session_repository.find_all_for_shows([show.id])
+        sessions = await self._session_repository.find_all_by(show_id=show.id, order_by=["starts_at"])
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
 
         if any(counts.get(s.id, SeatCounts(0, 0)).tickets_sold > 0 for s in sessions):
@@ -171,7 +171,7 @@ class ShowUseCase:
 
         sessions = [
             s
-            for s in await self._session_repository.find_all_for_shows([show.id])
+            for s in await self._session_repository.find_all_by(show_id=show.id, order_by=["starts_at"])
             if s.starts_at > now
         ]
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
@@ -199,7 +199,7 @@ class ShowUseCase:
         return show
 
     async def _view_for(self, show: Show) -> AdminShowResponse:
-        sessions = await self._session_repository.find_all_for_shows([show.id])
+        sessions = await self._session_repository.find_all_by(show_id=show.id, order_by=["starts_at"])
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
 
         return _show_response(show, sessions, counts, datetime.now(timezone.utc))
