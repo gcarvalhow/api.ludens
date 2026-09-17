@@ -53,8 +53,8 @@ class SessionUpdated(DomainEvent):
 
 @dataclass(frozen=True)
 class SessionCancelled(DomainEvent):
-    # Consumido por `payment` (reembolso em massa — RF07 / RN02 a partir do
-    # cancelamento) e por `notification` (aviso aos compradores).
+    # Consumed by `payment` (bulk refund — RF07 / RN02 triggered by the
+    # cancellation) and by `notification` (notice to buyers).
     id: UUID = field(kw_only=True)
     show_id: UUID = field(kw_only=True)
     starts_at: datetime = field(kw_only=True)

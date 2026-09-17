@@ -35,8 +35,8 @@ async def get_session_ref(session: AsyncSession, session_id: UUID) -> SessionRef
     return _ref(found, datetime.now(timezone.utc))
 
 async def lock_session_for_update(session: AsyncSession, session_id: UUID) -> SessionRef | None:
-    # SELECT ... FOR UPDATE: a trava atravessa a fronteira de módulo pela porta,
-    # não pelo import — booking não pode alcançar SessionRepository (RN05).
+    # SELECT ... FOR UPDATE: the lock crosses the module boundary through this port,
+    # not through the import — booking cannot reach SessionRepository directly (RN05).
     locked = await SessionRepository(session).find_by_id_for_update(session_id)
     if locked is None:
         return None

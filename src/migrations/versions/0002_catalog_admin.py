@@ -1,4 +1,4 @@
-"""catalog admin: tabelas shows e sessions
+"""catalog admin: shows and sessions tables
 
 Revision ID: 0002_catalog_admin
 Revises: 0001_identity_auth
@@ -16,8 +16,8 @@ down_revision: Union[str, None] = "0001_identity_auth"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
-# Enums nao-nativos (VARCHAR + CHECK): mesmos valores que o aggregate persiste
-# (values_callable no SAEnum de Show/Session).
+# Non-native enums (VARCHAR + CHECK): same values the aggregate persists
+# (values_callable on the Show/Session SAEnum).
 _SHOW_STATUS = sa.Enum("draft", "published", name="show_status", native_enum=False, length=20)
 _SESSION_STATUS = sa.Enum(
     "on_sale", "cancelled", name="session_status", native_enum=False, length=20
@@ -25,7 +25,7 @@ _SESSION_STATUS = sa.Enum(
 
 
 def _model_columns() -> list[sa.Column]:
-    # Colunas herdadas de core Model, iguais em toda tabela (defaults no ORM).
+    # Columns inherited from core Model, the same in every table (defaults in the ORM).
     return [
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),

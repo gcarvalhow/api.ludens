@@ -8,6 +8,7 @@ from app.core.domain import AuthError, DomainError, GoneError
 
 from app.modules.identity.domain.aggregates import User
 from app.modules.identity.domain.entities.password_reset_token import PasswordResetToken
+
 from app.modules.identity.application.schemas.response import TokenResponse
 from app.modules.identity.application.usecases.utils.session import issue_session
 

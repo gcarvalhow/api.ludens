@@ -9,10 +9,10 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.config import settings
 from app.core.domain import Model
 
-# Importar todos os models para o SQLAlchemy registrar as tabelas no metadata.
+# Import all models so SQLAlchemy registers the tables in the metadata.
 import app.outbox.models  # noqa: F401,E402
 
-# Cada feature acrescenta o import do próprio módulo aqui.
+# Each feature adds its own module's import here.
 import app.modules.identity.domain.aggregates.user  # noqa: F401,E402
 import app.modules.identity.domain.entities.password_reset_token  # noqa: F401,E402
 import app.modules.identity.domain.entities.refresh_token  # noqa: F401,E402
