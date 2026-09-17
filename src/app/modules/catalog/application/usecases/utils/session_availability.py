@@ -1,8 +1,12 @@
 from datetime import datetime
+from typing import NamedTuple
 
 from app.modules.catalog.domain.aggregates import Session
 from app.modules.catalog.domain.enumerations import SessionStatus
-from app.modules.catalog.infrastructure.repositories import SeatCounts
+
+class SeatCounts(NamedTuple):
+    tickets_sold: int
+    reserved_open: int
 
 def available_count(session: Session, counts: SeatCounts) -> int:
     # Available = capacity - confirmed - open, non-expired reservations.

@@ -20,12 +20,11 @@ from app.modules.catalog.application.usecases.utils.money import cents_from_reai
 from app.modules.catalog.application.usecases.utils.published_show import require_published_show
 from app.modules.catalog.application.usecases.utils.session_response import session_response
 from app.modules.catalog.application.usecases.utils.session_availability import (
+    SeatCounts,
     available_count,
     session_status,
 )
 from app.modules.catalog.infrastructure.repositories import (
-    SeatCounts,
-    SeatCountsRepository,
     SessionRepository,
     ShowRepository,
 )
@@ -34,7 +33,6 @@ class SessionUseCase:
     def __init__(self, session: AsyncSession) -> None:
         self._show_repository = ShowRepository(session)
         self._session_repository = SessionRepository(session)
-        self._seat_counts_repository = SeatCountsRepository(session)
 
     async def create_session(self, show_id: UUID, req: SessionRequest) -> AdminSessionResponse:
         show = await self._show_repository.find_by("id", show_id)
@@ -63,7 +61,7 @@ class SessionUseCase:
         if session.status is SessionStatus.CANCELLED:
             raise ConflictError("Não é possível editar uma sessão cancelada.")
 
-        counts = (await self._seat_counts_repository.for_sessions([session.id]))[session.id]
+        counts = SeatCounts(0, 0)
         now = datetime.now(timezone.utc)
 
         if req.starts_at <= now:
@@ -93,7 +91,7 @@ class SessionUseCase:
 
     async def delete_session(self, session_id: UUID) -> None:
         session = await self._lock(session_id)
-        counts = (await self._seat_counts_repository.for_sessions([session.id]))[session.id]
+        counts = SeatCounts(0, 0)
 
         if counts.tickets_sold > 0:
             raise ConflictError("Cancele a sessão em vez de excluir.")
@@ -107,8 +105,7 @@ class SessionUseCase:
             raise NotFoundError("Sessão não encontrada.")
 
         show = await require_published_show(self._show_repository, session.show_id)
-        counts = await self._seat_counts_repository.for_sessions([session.id])
-        available = available_count(session, counts.get(session.id, SeatCounts(0, 0)))
+        available = available_count(session, SeatCounts(0, 0))
         now = datetime.now(timezone.utc)
 
         return SessionDetailResponse(

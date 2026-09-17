@@ -3,7 +3,7 @@ from datetime import datetime
 from app.modules.catalog.domain.aggregates import Session
 from app.modules.catalog.domain.enumerations import SessionStatus
 from app.modules.catalog.application.schemas.response import AdminSessionResponse
-from app.modules.catalog.infrastructure.repositories import SeatCounts
+from app.modules.catalog.application.usecases.utils.session_availability import SeatCounts
 from app.modules.catalog.application.usecases.utils.money import reais_from_cents
 
 def session_response(session: Session, counts: SeatCounts, now: datetime) -> AdminSessionResponse:

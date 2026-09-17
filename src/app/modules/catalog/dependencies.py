@@ -7,10 +7,7 @@ from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.catalog.domain.aggregates import Session
-from app.modules.catalog.infrastructure.repositories import (
-    SeatCountsRepository,
-    SessionRepository,
-)
+from app.modules.catalog.infrastructure.repositories import SessionRepository
 
 @dataclass(frozen=True)
 class SessionRef:
@@ -42,8 +39,3 @@ async def lock_session_for_update(session: AsyncSession, session_id: UUID) -> Se
         return None
 
     return _ref(locked, datetime.now(timezone.utc))
-
-async def count_confirmed_tickets_for_session(session: AsyncSession, session_id: UUID) -> int:
-    counts = await SeatCountsRepository(session).for_sessions([session_id])
-
-    return counts[session_id].tickets_sold

@@ -24,13 +24,12 @@ from app.modules.catalog.application.usecases.utils.search_floor import floor_fr
 from app.modules.catalog.application.usecases.utils.published_show import require_published_show
 from app.modules.catalog.application.usecases.utils.session_response import session_response
 from app.modules.catalog.application.usecases.utils.session_availability import (
+    SeatCounts,
     available_count,
     session_status,
 )
 
 from app.modules.catalog.infrastructure.repositories import (
-    SeatCounts,
-    SeatCountsRepository,
     SessionRepository,
     ShowRepository,
 )
@@ -78,7 +77,6 @@ class ShowUseCase:
     def __init__(self, session: AsyncSession) -> None:
         self._show_repository = ShowRepository(session)
         self._session_repository = SessionRepository(session)
-        self._seat_counts_repository = SeatCountsRepository(session)
 
     async def list_shows(self) -> list[AdminShowSummaryResponse]:
         shows = await self._show_repository.find_all(order_by=["-created_at"])
@@ -126,7 +124,7 @@ class ShowUseCase:
     async def delete_show(self, show_id: UUID) -> None:
         show = await self._require_show(show_id)
         sessions = await self._session_repository.find_all_for_shows([show.id])
-        counts = await self._seat_counts_repository.for_sessions([s.id for s in sessions])
+        counts = {s.id: SeatCounts(0, 0) for s in sessions}
 
         if any(counts.get(s.id, SeatCounts(0, 0)).tickets_sold > 0 for s in sessions):
             raise ConflictError(
@@ -176,7 +174,7 @@ class ShowUseCase:
             for s in await self._session_repository.find_all_for_shows([show.id])
             if s.starts_at > now
         ]
-        counts = await self._seat_counts_repository.for_sessions([s.id for s in sessions])
+        counts = {s.id: SeatCounts(0, 0) for s in sessions}
 
         return ShowDetailResponse(
             id=show.id,
@@ -202,6 +200,6 @@ class ShowUseCase:
 
     async def _view_for(self, show: Show) -> AdminShowResponse:
         sessions = await self._session_repository.find_all_for_shows([show.id])
-        counts = await self._seat_counts_repository.for_sessions([s.id for s in sessions])
+        counts = {s.id: SeatCounts(0, 0) for s in sessions}
 
         return _show_response(show, sessions, counts, datetime.now(timezone.utc))
