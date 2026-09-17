@@ -5,9 +5,10 @@ from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.domain.errors import NotFoundError
+from app.core.domain.errors import ConflictError, DomainError, NotFoundError
 
 from app.modules.catalog.domain.aggregates import Session
+from app.modules.catalog.domain.enumerations import SessionStatus
 from app.modules.catalog.application.schemas.request import SessionRequest
 from app.modules.catalog.application.schemas.response import (
     AdminSessionResponse,
@@ -41,13 +42,17 @@ class SessionUseCase:
             raise NotFoundError("Espetáculo não encontrado.")
 
         now = datetime.now(timezone.utc)
+        if req.starts_at <= now:
+            raise DomainError("A data da sessão deve ser futura.")
+        if req.capacity <= 0:
+            raise DomainError("A capacidade deve ser maior que zero.")
+
         session = Session.create(
             show_id=show.id,
             starts_at=req.starts_at,
             venue=req.venue,
             capacity=req.capacity,
             full_price_cents=cents_from_reais(req.full_price),
-            now=now,
         )
 
         await self._session_repository.save(session)
@@ -55,16 +60,24 @@ class SessionUseCase:
 
     async def update_session(self, session_id: UUID, req: SessionRequest) -> AdminSessionResponse:
         session = await self._lock(session_id)
+        if session.status is SessionStatus.CANCELLED:
+            raise ConflictError("Não é possível editar uma sessão cancelada.")
+
         counts = (await self._seat_counts_repository.for_sessions([session.id]))[session.id]
         now = datetime.now(timezone.utc)
+
+        if req.starts_at <= now:
+            raise DomainError("A data da sessão deve ser futura.")
+
+        committed = counts.tickets_sold + counts.reserved_open
+        if req.capacity < committed:
+            raise ConflictError("Já há ingressos comprometidos nesta sessão.")
 
         session.update(
             starts_at=req.starts_at,
             venue=req.venue,
             capacity=req.capacity,
             full_price_cents=cents_from_reais(req.full_price),
-            committed=counts.tickets_sold + counts.reserved_open,
-            now=now,
         )
 
         await self._session_repository.save(session)
@@ -72,15 +85,20 @@ class SessionUseCase:
 
     async def cancel_session(self, session_id: UUID) -> None:
         session = await self._lock(session_id)
-        session.cancel()
+        if session.status is SessionStatus.CANCELLED:
+            raise ConflictError("A sessão já está cancelada.")
 
+        session.cancel()
         await self._session_repository.save(session)
 
     async def delete_session(self, session_id: UUID) -> None:
         session = await self._lock(session_id)
         counts = (await self._seat_counts_repository.for_sessions([session.id]))[session.id]
 
-        session.deactivate(tickets_sold=counts.tickets_sold)
+        if counts.tickets_sold > 0:
+            raise ConflictError("Cancele a sessão em vez de excluir.")
+
+        session.deactivate()
         await self._session_repository.save(session)
 
     async def get_session_detail(self, session_id: UUID) -> SessionDetailResponse:

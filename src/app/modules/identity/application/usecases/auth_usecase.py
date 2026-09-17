@@ -108,10 +108,11 @@ class AuthUseCase:
         token_hash = self._token_service.hash_opaque(req.token)
         record = await self._password_reset_repository.find_by("token_hash", token_hash)
 
-        if record is None:
+        now = datetime.now(timezone.utc)
+        if record is None or not record.is_valid(now):
             raise GoneError("Este link não é mais válido, solicite um novo.")
-        
-        record.consume(datetime.now(timezone.utc))
+
+        record.consume(now)
         user = await self._user_repository.find_by("id", record.user_id)
 
         if user is None:
