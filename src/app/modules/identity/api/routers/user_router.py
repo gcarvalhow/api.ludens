@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.domain import ForbiddenError
-from app.core.shared.pagination import Page, PaginationParams, make_pagination_params
+from app.core.shared import Page, PaginationParams, make_pagination_params
 
 from app.dependencies import get_db
 from app.modules.identity.dependencies import get_current_user, require_admin

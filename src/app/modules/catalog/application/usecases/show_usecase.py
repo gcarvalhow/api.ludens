@@ -7,7 +7,7 @@ from datetime import date, datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.domain.errors import ConflictError, NotFoundError
-from app.core.shared.pagination import Page, PaginationParams
+from app.core.shared import Page, PaginationParams
 
 from app.modules.catalog.domain.aggregates import Session, Show
 from app.modules.catalog.application.schemas.request import ShowRequest

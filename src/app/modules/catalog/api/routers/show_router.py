@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db
-from app.core.shared.pagination import Page, PaginationParams, make_pagination_params
+from app.core.shared import Page, PaginationParams, make_pagination_params
 from app.modules.catalog.application.schemas.response import (
     GenreResponse,
     ShowCardResponse,

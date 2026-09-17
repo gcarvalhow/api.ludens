@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.modules.identity.domain.aggregates import User
 from app.core.infrastructure.repositories import AggregateRepository, paginate
@@ -13,4 +13,7 @@ class UserRepository(AggregateRepository[User]):
         return [row[0] for row in rows], total
 
     async def count_active_admins(self) -> int:
-        return len(await self.find_all_by(is_admin=True))
+        result = await self._session.execute(
+            select(func.count(User.id)).where(User.is_admin.is_(True), User.is_active.is_(True))
+        )
+        return int(result.scalar_one())

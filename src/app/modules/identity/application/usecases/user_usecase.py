@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.domain import ConflictError, GoneError, NotFoundError
-from app.core.shared.pagination import Page, PaginationParams
+from app.core.shared import Page, PaginationParams
 
 from app.modules.identity.domain.aggregates import User
 from app.modules.identity.domain.entities.account_deletion_token import AccountDeletionToken
