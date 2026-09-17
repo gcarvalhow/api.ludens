@@ -40,6 +40,12 @@ class ShowCardResponse(BaseModel):
     price_min: float
     price_max: float
 
+class PagedShowsResponse(BaseModel):
+    items: list[ShowCardResponse]
+    page: int
+    size: int
+    total: int
+
 class GenreResponse(BaseModel):
     slug: str
     label: str

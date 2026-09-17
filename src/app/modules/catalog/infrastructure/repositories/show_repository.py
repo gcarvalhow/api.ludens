@@ -9,7 +9,6 @@ from sqlalchemy.dialects.postgresql import aggregate_order_by
 
 from app.modules.catalog.domain.aggregates import Session, Show
 from app.core.infrastructure.repositories import AggregateRepository
-from app.core.infrastructure.repositories.pagination import paginate
 from app.modules.catalog.domain.enumerations import SessionStatus, ShowStatus
 
 class ShowCardRow(NamedTuple):
@@ -22,10 +21,14 @@ class ShowCardRow(NamedTuple):
     price_min_cents: int
     price_max_cents: int
 
+class ShowSearchPage(NamedTuple):
+    rows: list[ShowCardRow]
+    total: int
+
 class ShowRepository(AggregateRepository[Show]):
     model = Show
 
-    async def search_with_upcoming(self, *, floor: datetime, genres: list[str] | None, page: int, size: int) -> tuple[list[ShowCardRow], int]:
+    async def search_with_upcoming(self, *, floor: datetime, genres: list[str] | None, page: int, size: int) -> ShowSearchPage:
         next_at = func.min(Session.starts_at).label("next_at")
         stmt = (
             select(
@@ -40,16 +43,21 @@ class ShowRepository(AggregateRepository[Show]):
                 func.min(Session.full_price_cents).label("price_min_cents"),
                 func.max(Session.full_price_cents).label("price_max_cents"),
                 next_at,
+                func.count().over().label("total"),
             )
             .join(Session, Session.show_id == Show.id)
             .where(*self._filters(floor, genres))
             .group_by(Show.id)
             .order_by(next_at.asc(), Show.id.asc())
+            .limit(size)
+            .offset((page - 1) * size)
         )
 
-        rows, total = await paginate(self._session, stmt, page=page, size=size)
+        result = (await self._session.execute(stmt)).all()
+        if not result:
+            return ShowSearchPage(rows=[], total=await self._count_in_catalog(floor, genres))
 
-        return [
+        rows = [
             ShowCardRow(
                 id=row.id,
                 title=row.title,
@@ -60,8 +68,10 @@ class ShowRepository(AggregateRepository[Show]):
                 price_min_cents=row.price_min_cents,
                 price_max_cents=row.price_max_cents,
             )
-            for row in rows
-        ], total
+            for row in result
+        ]
+
+        return ShowSearchPage(rows=rows, total=int(result[0].total))
 
     async def list_genres_in_catalog(self, *, floor: datetime) -> list[str]:
         result = await self._session.execute(
@@ -88,3 +98,15 @@ class ShowRepository(AggregateRepository[Show]):
             filters.append(Show.genre.in_(genres))
 
         return filters
+
+    async def _count_in_catalog(self, floor: datetime, genres: list[str] | None) -> int:
+        grouped = (
+            select(Show.id)
+            .join(Session, Session.show_id == Show.id)
+            .where(*self._filters(floor, genres))
+            .group_by(Show.id)
+            .subquery()
+        )
+
+        result = await self._session.execute(select(func.count()).select_from(grouped))
+        return int(result.scalar_one())

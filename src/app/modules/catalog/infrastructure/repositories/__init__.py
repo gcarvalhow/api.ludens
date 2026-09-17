@@ -1,8 +1,9 @@
 from .session_repository import SessionRepository
-from .show_repository import ShowCardRow, ShowRepository
+from .show_repository import ShowCardRow, ShowRepository, ShowSearchPage
 
 __all__ = [
     "SessionRepository",
     "ShowCardRow",
     "ShowRepository",
+    "ShowSearchPage",
 ]
