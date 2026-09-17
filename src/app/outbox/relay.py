@@ -1,11 +1,12 @@
 import asyncio
 import logging
-from datetime import datetime, timezone
 
 from sqlalchemy import select
+from datetime import datetime, timezone
 
 from app.config import settings
 from app.database import AsyncSessionLocal
+
 from app.outbox.models import Event
 from app.outbox.registry import handlers_for
 
@@ -27,6 +28,7 @@ async def _process_batch() -> None:
 
             for event in events:
                 handlers = handlers_for(event.event_type)
+
                 try:
                     for handler in handlers:
                         await handler(event.payload)
@@ -37,6 +39,7 @@ async def _process_batch() -> None:
                         "OutboxRelay: handler de %s (evento %s) falhou: %s",
                         event.event_type, event.id, exc,
                     )
+                    
                     continue
 
                 event.dispatched_at = datetime.now(timezone.utc)

@@ -9,7 +9,7 @@ class IVersionedEvent(Protocol):
 
 @runtime_checkable
 class IDomainEvent(IVersionedEvent, Protocol):
-    """Marker: evento levantado por um aggregate."""
+    """Marker: event raised by an aggregate."""
 
 @runtime_checkable
 class IDelayedEvent(IVersionedEvent, Protocol):

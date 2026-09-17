@@ -4,11 +4,11 @@ Revision ID: 0001_identity_auth
 Revises:
 Create Date: 2026-09-04
 
-Primeira migration do repo. Alem das tabelas do modulo identity, cria a tabela
-`events` do outbox (core), que passa a existir com a primeira feature — o
-env.py ja mapeia app.outbox.models no metadata. Os indices unicos parciais
-(email/cpf onde is_active) sao escritos a mao: o autogenerate do Alembic nao os
-gera corretamente.
+First migration of the repo. Besides the identity module's tables, it creates
+the outbox's `events` table (core), which comes into existence with the first
+feature — env.py already maps app.outbox.models in the metadata. The partial
+unique indexes (email/cpf where is_active) are written by hand: Alembic's
+autogenerate does not produce them correctly.
 """
 
 from typing import Sequence, Union
@@ -23,7 +23,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 def _model_columns() -> list[sa.Column]:
-    # Colunas herdadas de core Model, iguais em toda tabela.
+    # Columns inherited from core Model, the same in every table.
     return [
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
@@ -53,7 +53,7 @@ def upgrade() -> None:
         sa.Column("is_admin", sa.Boolean(), nullable=False),
         sa.Column("security_stamp", postgresql.UUID(as_uuid=True), nullable=False),
     )
-    # Unicidade de e-mail e CPF apenas entre contas ativas (soft delete).
+    # Email and CPF uniqueness only among active accounts (soft delete).
     op.create_index(
         "uq_users_email_active",
         "users",

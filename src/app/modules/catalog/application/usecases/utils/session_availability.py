@@ -5,8 +5,8 @@ from app.modules.catalog.domain.enumerations import SessionStatus
 from app.modules.catalog.infrastructure.repositories import SeatCounts
 
 def available_count(session: Session, counts: SeatCounts) -> int:
-    # Disponível = capacidade − confirmados − reservas abertas não vencidas.
-    # É leitura do instante, não garantia: a reserva revalida sob trava (RN05).
+    # Available = capacity - confirmed - open, non-expired reservations.
+    # This is a point-in-time read, not a guarantee: the reservation revalidates under lock (RN05).
     return max(0, session.capacity - counts.tickets_sold - counts.reserved_open)
 
 def session_status(session: Session, available: int, now: datetime) -> str:

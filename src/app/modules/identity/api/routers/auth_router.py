@@ -16,9 +16,9 @@ from app.modules.identity.application.schemas.request import (
 )
 
 from app.modules.identity.application.schemas.response import TokenResponse
-from app.modules.identity.api.routers.utils.cookies import REFRESH_COOKIE, set_refresh_cookie
+from app.modules.identity.api.routers.utils.cookies import REFRESH_COOKIE, REFRESH_PATH, set_refresh_cookie
 
-router = APIRouter(prefix="/auth", tags=["Identity"])
+router = APIRouter(prefix="/identity", tags=["01.Identity - Auth"])
 
 @router.post("/login", response_model=TokenResponse)
 async def login(body: LoginRequest, response: Response, session: AsyncSession = Depends(get_db)) -> TokenResponse:
@@ -30,7 +30,7 @@ async def login(body: LoginRequest, response: Response, session: AsyncSession = 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(response: Response, session: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)) -> None:
     await AuthUseCase(session).logout(user)
-    response.delete_cookie(REFRESH_COOKIE, path="/auth")
+    response.delete_cookie(REFRESH_COOKIE, path=REFRESH_PATH)
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(request: Request, response: Response, session: AsyncSession = Depends(get_db)) -> TokenResponse:

@@ -1,18 +1,20 @@
 import asyncio
 import logging
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
 
 from app.config import settings
 from app.core.shared import format_validation_errors
 from app.outbox.relay import run as run_outbox_relay
-from app.modules.identity.router import router as identity_router
-from app.modules.catalog.router import router as catalog_router
 from app.core.domain import AuthError, ConflictError, DomainError, ForbiddenError, GoneError, NotFoundError
+
+from app.modules.catalog.router import router as catalog_router
+from app.modules.identity.router import router as identity_router
 
 logger = logging.getLogger(__name__)
 

@@ -22,8 +22,8 @@ class SessionRepository(AggregateRepository[Session]):
         return list(result.scalars().all())
 
     async def find_by_id_for_update(self, session_id: UUID) -> Session | None:
-        # SELECT ... FOR UPDATE: trava a linha até o fim da transação — RN05,
-        # necessário na edição/cancelamento/exclusão de sessão sob concorrência.
+        # SELECT ... FOR UPDATE: locks the row until the transaction ends — RN05,
+        # needed when editing/cancelling/deleting a session under concurrency.
         result = await self._session.execute(
             select(Session)
             .where(Session.id == session_id, Session.is_active.is_(True))

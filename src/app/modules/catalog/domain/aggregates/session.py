@@ -41,7 +41,7 @@ class Session(AggregateRoot, Model):
 
     @property
     def half_price_cents(self) -> int:
-        # RN04 — 50% da inteira, truncado ao centavo. Derivado, nunca digitado.
+        # RN04 — 50% of the full price, truncated to the cent. Derived, never entered directly.
         return self.full_price_cents // 2
 
     def is_on_sale(self, now: datetime) -> bool:
@@ -113,7 +113,7 @@ class Session(AggregateRoot, Model):
         )
 
     def deactivate(self, *, tickets_sold: int) -> None:
-        # Regra central RF08: sessão com ingresso vendido NÃO se apaga.
+        # Core RF08 rule: a session with tickets sold must NOT be deleted.
         if tickets_sold > 0:
             raise ConflictError("Cancele a sessão em vez de excluir.")
         

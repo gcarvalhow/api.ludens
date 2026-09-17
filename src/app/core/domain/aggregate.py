@@ -1,6 +1,7 @@
 from collections import deque
 from typing import Callable, TypeVar
 from sqlalchemy.orm import reconstructor
+
 from app.core.domain.events import DomainEvent
 
 T = TypeVar("T", bound=DomainEvent)
