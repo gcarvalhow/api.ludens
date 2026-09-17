@@ -15,6 +15,15 @@ services:
     networks:
       - ludens-dev
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ludens-mailpit-dev
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # UI web
+    networks:
+      - ludens-dev
+
 volumes:
   ludens-pg-data:
 
