@@ -4,7 +4,7 @@ from email.message import EmailMessage
 
 from app.config import settings
 
-from app.modules.notification.infrastructure.services.email_service import EmailServiceError
+from app.modules.notification.shared import EmailServiceError
 
 class SmtpEmailService:
     async def send(self, to: str, subject: str, html_body: str) -> None:
