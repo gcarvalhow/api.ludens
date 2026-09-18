@@ -27,7 +27,8 @@ resource "azurerm_postgresql_flexible_server_database" "this" {
 # App Service is not VNet-integrated, so it reaches Postgres over its public
 # endpoint — this rule (0.0.0.0-0.0.0.0 is the azurerm provider's documented
 # convention for "allow access from Azure services") is what makes that work.
-# VNet integration is a future hardening step, not needed at this scale (ADR 003).
+# VNet integration is a future hardening step (no infra ADR covers this yet —
+# tracked informally against issue #49/#57, not a documented decision).
 resource "azurerm_postgresql_flexible_server_firewall_rule" "allow_azure_services" {
   name             = "AllowAzureServices"
   server_id        = azurerm_postgresql_flexible_server.this.id

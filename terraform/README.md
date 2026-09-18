@@ -54,7 +54,15 @@ quando isso for resolvido, sem bloquear o resto.
 ## O que ainda falta (outras issues da Workstream D)
 
 - **#50** — módulo Terraform pro Azure Communication Services; troca `EMAIL_BACKEND` de `smtp`
-  pra `acs` neste módulo e preenche `ACS_CONNECTION_STRING`/`ACS_SENDER_ADDRESS`.
+  pra `acs` neste módulo e preenche `ACS_CONNECTION_STRING`/`ACS_SENDER_ADDRESS`. **Até lá,
+  e-mail transacional fica inoperante em produção** — `EMAIL_BACKEND=smtp` sem `SMTP_HOST`
+  reachable (o Mailpit só existe no `docker-compose` de dev local); é um gap conhecido e
+  deliberado, não um bug.
 - **#52** — pipeline de deploy (`terraform plan`/`apply` via GitHub Actions + deploy da imagem
-  Docker no App Service).
+  Docker no App Service). Também é responsabilidade da #52 garantir que o pacote
+  `ghcr.io/gcarvalhow/api.ludens` seja **público** — o `app_service` deste módulo não configura
+  nenhuma credencial de registro (decisão desta issue: pacote público, sem `docker_registry_url`
+  nem `DOCKER_REGISTRY_SERVER_*`), então um pacote privado quebra o `docker pull` do App Service
+  na subida do container. Pacotes GHCR podem nascer privados por padrão mesmo em repositório
+  público — confirmar a visibilidade antes/durante a #52.
 - **#57** — domínio próprio + certificado gerenciado, quando existir orçamento/decisão.

@@ -49,13 +49,20 @@ module "app_service" {
     # Stays "smtp" (not "acs") until issue #50 provisions the ACS resource —
     # no point pointing at a backend that doesn't exist yet. #50 flips this
     # to "acs" and fills the two connection settings below from its own
-    # module outputs.
+    # module outputs. No SMTP_HOST/SMTP_PORT are set here on purpose: there's
+    # no reachable SMTP server in production (Mailpit only exists in local
+    # dev docker-compose) — transactional e-mail is a known, deliberate gap
+    # until #50 lands, not an oversight. See terraform/README.md.
     EMAIL_BACKEND         = "smtp"
     EMAIL_FROM_ADDRESS    = var.email_from_address
-    EMAIL_FROM_NAME       = "Ludens"
+    EMAIL_FROM_NAME       = var.email_from_name
     ACS_CONNECTION_STRING = ""
     ACS_SENDER_ADDRESS    = ""
 
     FRONTEND_BASE_URL = var.frontend_base_url
+
+    # Container listens on 8000 (Dockerfile), not the App Service Linux
+    # default of 80 — without this the app comes up as unreachable.
+    WEBSITES_PORT = "8000"
   }
 }

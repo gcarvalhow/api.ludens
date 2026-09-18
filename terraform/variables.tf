@@ -54,3 +54,8 @@ variable "email_from_address" {
   type    = string
   default = "no-reply@ludens.local"
 }
+
+variable "email_from_name" {
+  type    = string
+  default = "Ludens"
+}
