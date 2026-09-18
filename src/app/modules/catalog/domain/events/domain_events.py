@@ -7,12 +7,26 @@ from dataclasses import dataclass, field
 from app.core.domain.events import DomainEvent
 
 @dataclass(frozen=True)
+class GenreCreated(DomainEvent):
+    id: UUID = field(kw_only=True)
+    name: str = field(kw_only=True)
+
+@dataclass(frozen=True)
+class GenreUpdated(DomainEvent):
+    id: UUID = field(kw_only=True)
+    name: str = field(kw_only=True)
+
+@dataclass(frozen=True)
+class GenreDeactivated(DomainEvent):
+    id: UUID = field(kw_only=True)
+
+@dataclass(frozen=True)
 class ShowCreated(DomainEvent):
     id: UUID = field(kw_only=True)
     title: str = field(kw_only=True)
     synopsis: str = field(kw_only=True)
     image_url: str = field(kw_only=True)
-    genre: str = field(kw_only=True)
+    genre_id: UUID = field(kw_only=True)
 
 @dataclass(frozen=True)
 class ShowUpdated(DomainEvent):
@@ -20,7 +34,7 @@ class ShowUpdated(DomainEvent):
     title: str = field(kw_only=True)
     synopsis: str = field(kw_only=True)
     image_url: str = field(kw_only=True)
-    genre: str = field(kw_only=True)
+    genre_id: UUID = field(kw_only=True)
 
 @dataclass(frozen=True)
 class ShowPublished(DomainEvent):

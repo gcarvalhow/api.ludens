@@ -2,7 +2,7 @@ from datetime import datetime
 
 from app.modules.catalog.domain.aggregates import SeatCounts, Session
 from app.modules.catalog.application.schemas.response import AdminSessionResponse
-from app.core.shared import reais_from_cents
+from app.modules.catalog.application.utils import reais_from_cents
 
 def session_response(session: Session, counts: SeatCounts, now: datetime) -> AdminSessionResponse:
     # AdminSessionResponse.status não tem "sold_out" (admin já vê tickets_sold/

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from uuid import uuid4
-from sqlalchemy import String
+from uuid import UUID, uuid4
+from sqlalchemy import ForeignKey, String, Uuid
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,7 +24,7 @@ class Show(AggregateRoot, Model):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     synopsis: Mapped[str] = mapped_column(String(5000), nullable=False)
     image_url: Mapped[str] = mapped_column(String(2048), nullable=False)
-    genre: Mapped[str] = mapped_column(String(80), nullable=False)
+    genre_id: Mapped[UUID] = mapped_column(Uuid(), ForeignKey("genres.id"), nullable=False, index=True)
 
     status: Mapped[ShowStatus] = mapped_column(
         SAEnum(
@@ -42,23 +42,23 @@ class Show(AggregateRoot, Model):
         return self.status is ShowStatus.PUBLISHED
 
     @classmethod
-    def create(cls, *, title: str, synopsis: str, image_url: str, genre: str) -> "Show":
+    def create(cls, *, title: str, synopsis: str, image_url: str, genre_id: UUID) -> "Show":
         show = cls()
         show.id = uuid4()
 
         show.raise_event(
             lambda v: ShowCreated(
                 version=v, id=show.id, title=title, synopsis=synopsis,
-                image_url=image_url, genre=genre,
+                image_url=image_url, genre_id=genre_id,
             )
         )
         return show
 
-    def update(self, *, title: str, synopsis: str, image_url: str, genre: str) -> None:
+    def update(self, *, title: str, synopsis: str, image_url: str, genre_id: UUID) -> None:
         self.raise_event(
             lambda v: ShowUpdated(
                 version=v, id=self.id, title=title, synopsis=synopsis,
-                image_url=image_url, genre=genre,
+                image_url=image_url, genre_id=genre_id,
             )
         )
 
@@ -86,7 +86,7 @@ class Show(AggregateRoot, Model):
         self.title = e.title
         self.synopsis = e.synopsis
         self.image_url = e.image_url
-        self.genre = e.genre
+        self.genre_id = e.genre_id
         self.status = ShowStatus.DRAFT
         self.is_active = True
 
@@ -94,7 +94,7 @@ class Show(AggregateRoot, Model):
         self.title = e.title
         self.synopsis = e.synopsis
         self.image_url = e.image_url
-        self.genre = e.genre
+        self.genre_id = e.genre_id
 
     def _when_ShowPublished(self, _event: ShowPublished) -> None:
         self.status = ShowStatus.PUBLISHED

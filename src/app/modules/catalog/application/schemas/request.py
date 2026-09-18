@@ -5,10 +5,21 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
 
+class GenreRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=80)
+
+    @field_validator("name")
+    @classmethod
+    def _strip(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("nome do gênero não pode ser vazio")
+        return stripped
+
 class ShowRequest(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     synopsis: str = Field(min_length=1, max_length=5000)
-    genre: str = Field(min_length=1, max_length=80)
+    genre_id: UUID
 
 class SessionRequest(BaseModel):
     show_id: UUID = Field(description="Ignorado em PUT — sessão não muda de show após criada.")

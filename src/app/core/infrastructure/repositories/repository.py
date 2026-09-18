@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.outbox.models import Event
 from app.core.domain import DomainEvent, Model
-from app.core.infrastructure.repositories.pagination import paginate
+from app.core.infrastructure.queries.pagination import paginate
 
 T = TypeVar("T", bound=Model)
 

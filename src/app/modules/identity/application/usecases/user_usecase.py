@@ -22,17 +22,14 @@ from app.modules.identity.application.schemas.response import TokenResponse, Use
 
 from app.modules.identity.infrastructure.services import PasswordService, TokenService
 
+from app.modules.identity.application.mappers import user_response
+
 from app.modules.identity.infrastructure.repositories import (
     AccountDeletionTokenRepository,
     EmailChangeTokenRepository,
     RefreshTokenRepository,
     UserRepository
 )
-
-def _user_response(user: User) -> UserResponse:
-    return UserResponse(
-        id=user.id, name=user.name, email=user.email, cpf=user.cpf, is_admin=user.is_admin
-    )
 
 class UserUseCase:
     def __init__(self, session: AsyncSession) -> None:
@@ -67,7 +64,7 @@ class UserUseCase:
         if user is None:
             raise NotFoundError("Usuário não encontrado.")
 
-        return _user_response(user)
+        return user_response(user)
 
     async def list_users(self, pagination: PaginationParams) -> Page[UserResponse]:
         users, total = await self._user_repository.list_paginated(
@@ -75,7 +72,7 @@ class UserUseCase:
         )
 
         return Page(
-            items=[_user_response(user) for user in users],
+            items=[user_response(user) for user in users],
             page=pagination.page,
             size=pagination.size,
             total=total,
@@ -85,7 +82,7 @@ class UserUseCase:
         user.update_profile(req.name)
         await self._user_repository.save(user)
 
-        return _user_response(user)
+        return user_response(user)
 
     async def request_email_change(self, user: User, req: RequestEmailChangeRequest) -> dict[str, str]:
         new_email = Email(req.new_email.strip().lower())

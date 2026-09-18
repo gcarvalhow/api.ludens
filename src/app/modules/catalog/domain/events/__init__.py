@@ -1,4 +1,7 @@
 from .domain_events import (
+    GenreCreated,
+    GenreDeactivated,
+    GenreUpdated,
     SessionCancelled,
     SessionCreated,
     SessionDeactivated,
@@ -11,6 +14,9 @@ from .domain_events import (
 )
 
 __all__ = [
+    "GenreCreated",
+    "GenreDeactivated",
+    "GenreUpdated",
     "SessionCancelled",
     "SessionCreated",
     "SessionDeactivated",

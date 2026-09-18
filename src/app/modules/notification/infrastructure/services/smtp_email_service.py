@@ -3,7 +3,6 @@ import aiosmtplib
 from email.message import EmailMessage
 
 from app.config import settings
-
 from app.modules.notification.shared import EmailServiceError
 
 class SmtpEmailService:
