@@ -73,14 +73,6 @@ class ShowUseCase:
         self._session_repository = SessionRepository(session)
         self._show_search_query = ShowSearchQuery(session)
 
-    async def list_shows(self) -> list[AdminShowSummaryResponse]:
-        shows = await self._show_repository.find_all(order_by=["-created_at"])
-        return [_show_summary(show) for show in shows]
-
-    async def get_show(self, show_id: UUID) -> AdminShowResponse:
-        show = await self._require_show(show_id)
-        return await self._view_for(show)
-
     async def create_show(self, req: ShowRequest) -> AdminShowResponse:
         show = Show.create(
             title=req.title,
@@ -129,7 +121,20 @@ class ShowUseCase:
         show.deactivate()
         await self._show_repository.save(show)
 
-    async def search(self, *, from_date: date | None, genre: str | None, pagination: PaginationParams) -> Page[ShowCardResponse]:
+    async def search(
+        self, *, from_date: date | None, genre: str | None, pagination: PaginationParams, is_admin: bool
+    ) -> Page[AdminShowSummaryResponse] | Page[ShowCardResponse]:
+        if is_admin:
+            shows, total = await self._show_repository.find_all_paginated(
+                order_by=["-created_at"], page=pagination.page, size=pagination.size
+            )
+            return Page(
+                items=[_show_summary(s) for s in shows],
+                page=pagination.page,
+                size=pagination.size,
+                total=total,
+            )
+
         floor = floor_from(from_date)
         genres: list[str] | None = None
 
@@ -160,8 +165,12 @@ class ShowUseCase:
 
         return [GenreResponse(slug=slug, label=label) for slug, label in by_slug.items()]
 
-    async def get_show_detail(self, show_id: UUID) -> ShowDetailResponse:
+    async def get_show_detail(self, show_id: UUID, *, is_admin: bool) -> AdminShowResponse | ShowDetailResponse:
         show = await self._require_show(show_id)
+
+        if is_admin:
+            return await self._view_for(show)
+
         if not show.is_published:
             raise NotFoundError("Espetáculo não encontrado.")
         now = datetime.now(timezone.utc)

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from uuid import UUID
 from datetime import datetime
 
 from pydantic import BaseModel, Field, field_validator
@@ -10,6 +11,7 @@ class ShowRequest(BaseModel):
     genre: str = Field(min_length=1, max_length=80)
 
 class SessionRequest(BaseModel):
+    show_id: UUID = Field(description="Ignorado em PUT — sessão não muda de show após criada.")
     starts_at: datetime
     venue: str = Field(min_length=1, max_length=200)
     capacity: int = Field(gt=0, le=100_000)
