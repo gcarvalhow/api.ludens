@@ -3,7 +3,7 @@ from fastapi import Response
 from app.config import settings
 
 REFRESH_COOKIE = "refresh_token"
-REFRESH_PATH = "/identity"
+REFRESH_PATH = "/api/identity/authentication"
 
 def set_refresh_cookie(response: Response, raw_refresh: str) -> None:
     response.set_cookie(

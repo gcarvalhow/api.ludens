@@ -12,7 +12,7 @@ from app.modules.catalog.application.schemas.request import GenreRequest
 from app.modules.catalog.application.schemas.response import GenreResponse
 from app.modules.catalog.application.usecases.genre_usecase import GenreUseCase
 
-router = APIRouter(prefix="/genres", tags=["03.Catalog - Genre"])
+router = APIRouter(prefix="/catalog/genres", tags=["03.Catalog - Genre"])
 
 @router.post("", response_model=GenreResponse, status_code=201, dependencies=[Depends(require_admin)])
 async def create(

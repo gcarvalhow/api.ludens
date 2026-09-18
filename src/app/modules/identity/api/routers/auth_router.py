@@ -18,7 +18,7 @@ from app.modules.identity.application.schemas.request import (
 from app.modules.identity.application.schemas.response import TokenResponse
 from app.modules.identity.shared import REFRESH_COOKIE, REFRESH_PATH, set_refresh_cookie
 
-router = APIRouter(prefix="/identity", tags=["01.Identity - Auth"])
+router = APIRouter(prefix="/identity/authentication", tags=["01.Identity - Auth"])
 
 @router.post("/login", response_model=TokenResponse)
 async def login(
