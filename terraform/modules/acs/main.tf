@@ -1,11 +1,11 @@
 resource "azurerm_communication_service" "this" {
-  name                = "${var.name_prefix}-acs"
+  name                = var.communication_service_name
   resource_group_name = var.resource_group_name
   data_location       = var.data_location
 }
 
 resource "azurerm_email_communication_service" "this" {
-  name                = "${var.name_prefix}-email"
+  name                = var.email_service_name
   resource_group_name = var.resource_group_name
   data_location       = var.data_location
 }

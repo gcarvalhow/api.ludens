@@ -1,6 +1,9 @@
-variable "name_prefix" {
-  type    = string
-  default = "ludens"
+variable "communication_service_name" {
+  type = string
+}
+
+variable "email_service_name" {
+  type = string
 }
 
 variable "resource_group_name" {

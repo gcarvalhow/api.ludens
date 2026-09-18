@@ -30,6 +30,16 @@ variable "postgres_server_name" {
   default = "ludens-psql"
 }
 
+variable "communication_service_name" {
+  type    = string
+  default = "ludens-acs"
+}
+
+variable "email_service_name" {
+  type    = string
+  default = "ludens-email"
+}
+
 variable "postgres_admin_username" {
   type    = string
   default = "ludensadmin"

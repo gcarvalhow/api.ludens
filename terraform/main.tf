@@ -29,7 +29,9 @@ module "postgresql" {
 module "acs" {
   source = "./modules/acs"
 
-  resource_group_name = module.resource_group.name
+  communication_service_name = var.communication_service_name
+  email_service_name         = var.email_service_name
+  resource_group_name        = module.resource_group.name
 }
 
 module "app_service" {
