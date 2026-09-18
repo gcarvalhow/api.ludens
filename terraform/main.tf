@@ -26,6 +26,12 @@ module "postgresql" {
   admin_password      = random_password.postgres_admin.result
 }
 
+module "acs" {
+  source = "./modules/acs"
+
+  resource_group_name = module.resource_group.name
+}
+
 module "app_service" {
   source = "./modules/app_service"
 
@@ -46,18 +52,16 @@ module "app_service" {
 
     OUTBOX_RELAY_INTERVAL_SECONDS = "2"
 
-    # Stays "smtp" (not "acs") until issue #50 provisions the ACS resource —
-    # no point pointing at a backend that doesn't exist yet. #50 flips this
-    # to "acs" and fills the two connection settings below from its own
-    # module outputs. No SMTP_HOST/SMTP_PORT are set here on purpose: there's
-    # no reachable SMTP server in production (Mailpit only exists in local
-    # dev docker-compose) — transactional e-mail is a known, deliberate gap
-    # until #50 lands, not an oversight. See terraform/README.md.
-    EMAIL_BACKEND         = "smtp"
+    # AcsEmailService (src/app/modules/notification/infrastructure/services/
+    # acs_email_service.py) reads acs_connection_string/acs_sender_address
+    # exclusively — email_from_address/email_from_name below are SMTP-only
+    # settings, harmless leftovers once EMAIL_BACKEND=acs (get_email_service()
+    # never instantiates SmtpEmailService in that case).
+    EMAIL_BACKEND         = "acs"
     EMAIL_FROM_ADDRESS    = var.email_from_address
     EMAIL_FROM_NAME       = var.email_from_name
-    ACS_CONNECTION_STRING = ""
-    ACS_SENDER_ADDRESS    = ""
+    ACS_CONNECTION_STRING = module.acs.connection_string
+    ACS_SENDER_ADDRESS    = module.acs.sender_address
 
     FRONTEND_BASE_URL = var.frontend_base_url
 
