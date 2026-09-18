@@ -3,7 +3,7 @@ from azure.core.exceptions import AzureError
 
 from app.config import settings
 
-from app.modules.notification.infrastructure.services.email_service import EmailServiceError
+from app.modules.notification.shared import EmailServiceError
 
 class AcsEmailService:
     async def send(self, to: str, subject: str, html_body: str) -> None:

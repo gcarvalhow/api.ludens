@@ -2,7 +2,7 @@ from app.config import settings
 from app.outbox.registry import register
 
 from app.modules.notification.infrastructure.services import get_email_service
-from app.modules.notification.infrastructure.templates import (
+from app.modules.notification.shared import (
     account_deletion_requested_email,
     email_change_requested_email,
     email_changed_courtesy_email,
