@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.outbox.models import Event
 from app.core.domain import DomainEvent, Model
+from app.core.infrastructure.repositories.pagination import paginate
 
 T = TypeVar("T", bound=Model)
 
@@ -37,6 +38,17 @@ class BaseRepository(Generic[T]):
 
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def find_all_paginated(self, *, order_by: Sequence[str] | None = None, page: int, size: int) -> tuple[list[T], int]:
+        stmt = select(self.model).where(self.model.is_active == True)  # noqa: E712
+
+        for field in order_by or []:
+            descending = field.startswith("-")
+            column = getattr(self.model, field[1:] if descending else field)
+            stmt = stmt.order_by(column.desc() if descending else column.asc())
+
+        rows, total = await paginate(self._session, stmt, page=page, size=size)
+        return [row[0] for row in rows], total
 
     async def exists_by(self, field: str, value: Any) -> bool:
         column = getattr(self.model, field)

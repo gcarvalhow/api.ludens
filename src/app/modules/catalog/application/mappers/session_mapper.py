@@ -1,18 +1,15 @@
 from datetime import datetime
 
-from app.modules.catalog.domain.aggregates import Session
-from app.modules.catalog.domain.enumerations import SessionStatus
+from app.modules.catalog.domain.aggregates import SeatCounts, Session
 from app.modules.catalog.application.schemas.response import AdminSessionResponse
-from app.modules.catalog.application.usecases.utils.session_availability import SeatCounts
-from app.modules.catalog.application.usecases.utils.money import reais_from_cents
+from app.core.shared import reais_from_cents
 
 def session_response(session: Session, counts: SeatCounts, now: datetime) -> AdminSessionResponse:
-    if session.status is SessionStatus.CANCELLED:
-        status = "cancelled"
-    elif session.starts_at <= now:
-        status = "closed"
-    else:
-        status = "on_sale"
+    # AdminSessionResponse.status não tem "sold_out" (admin já vê tickets_sold/
+    # reserved_open crus) — rebaixa o "sold_out" de Session.status_at pra "on_sale"
+    # só nesta visão administrativa.
+    public_status = session.status_at(now, counts)
+    status = "on_sale" if public_status == "sold_out" else public_status
 
     return AdminSessionResponse(
         id=session.id,

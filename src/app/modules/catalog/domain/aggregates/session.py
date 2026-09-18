@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from uuid import UUID, uuid4
+from typing import NamedTuple
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,6 +18,10 @@ from app.modules.catalog.domain.events import (
     SessionDeactivated,
     SessionUpdated,
 )
+
+class SeatCounts(NamedTuple):
+    tickets_sold: int
+    reserved_open: int
 
 class Session(AggregateRoot, Model):
     __tablename__ = "sessions"
@@ -43,8 +48,20 @@ class Session(AggregateRoot, Model):
         # RN04 — 50% of the full price, truncated to the cent. Derived, never entered directly.
         return self.full_price_cents // 2
 
-    def is_on_sale(self, now: datetime) -> bool:
-        return self.status is SessionStatus.ON_SALE and self.starts_at > now
+    def available_count(self, counts: SeatCounts) -> int:
+        # Available = capacity - confirmed - open, non-expired reservations.
+        # This is a point-in-time read, not a guarantee: the reservation revalidates under lock (RN05).
+        return max(0, self.capacity - counts.tickets_sold - counts.reserved_open)
+
+    def status_at(self, now: datetime, counts: SeatCounts) -> str:
+        if self.status is SessionStatus.CANCELLED:
+            return "cancelled"
+        if self.starts_at <= now:
+            return "closed"
+        if self.available_count(counts) <= 0:
+            return "sold_out"
+
+        return "on_sale"
 
     @classmethod
     def create(

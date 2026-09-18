@@ -1,6 +1,6 @@
 from app.modules.catalog.application.schemas.response import ShowCardResponse
-from app.modules.catalog.application.usecases.utils.money import reais_from_cents
-from app.modules.catalog.infrastructure.repositories import ShowCardRow
+from app.modules.catalog.infrastructure.queries import ShowCardRow
+from app.core.shared import reais_from_cents
 
 _SYNOPSIS_MAX = 160
 _UPCOMING_DATES_MAX = 5
