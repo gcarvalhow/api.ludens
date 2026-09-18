@@ -16,7 +16,7 @@ from app.modules.identity.application.schemas.request import (
 )
 
 from app.modules.identity.application.schemas.response import TokenResponse
-from app.modules.identity.api.routers.utils.cookies import REFRESH_COOKIE, REFRESH_PATH, set_refresh_cookie
+from app.modules.identity.shared import REFRESH_COOKIE, REFRESH_PATH, set_refresh_cookie
 
 router = APIRouter(prefix="/identity", tags=["01.Identity - Auth"])
 

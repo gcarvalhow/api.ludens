@@ -17,7 +17,7 @@ from app.modules.identity.application.schemas.request import (
     UpdateProfileRequest,
 )
 
-from app.modules.identity.application.usecases.utils.session import issue_session
+from app.modules.identity.shared import issue_session
 from app.modules.identity.application.schemas.response import TokenResponse, UserResponse
 
 from app.modules.identity.infrastructure.services import PasswordService, TokenService
