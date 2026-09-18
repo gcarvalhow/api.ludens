@@ -5,11 +5,11 @@ from typing import NamedTuple
 from datetime import datetime
 
 from sqlalchemy import distinct, func, select
-from sqlalchemy.dialects.postgresql import aggregate_order_by
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import aggregate_order_by
 
-from app.modules.catalog.domain.aggregates import Session, Show
-from app.core.infrastructure.repositories import paginate
+from app.core.infrastructure.queries import paginate
+from app.modules.catalog.domain.aggregates import Genre, Session, Show
 from app.modules.catalog.domain.enumerations import SessionStatus, ShowStatus
 
 class ShowCardRow(NamedTuple):
@@ -17,7 +17,8 @@ class ShowCardRow(NamedTuple):
     title: str
     synopsis: str
     image_url: str
-    genre: str
+    genre_id: UUID
+    genre_name: str
     upcoming_dates: list[datetime]
     price_min_cents: int
     price_max_cents: int
@@ -26,7 +27,7 @@ class ShowSearchQuery:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def search_with_upcoming(self, *, floor: datetime, genres: list[str] | None, page: int, size: int) -> tuple[list[ShowCardRow], int]:
+    async def search_with_upcoming(self, *, floor: datetime, genre_id: UUID | None, page: int, size: int) -> tuple[list[ShowCardRow], int]:
         next_at = func.min(Session.starts_at).label("next_at")
         stmt = (
             select(
@@ -34,7 +35,8 @@ class ShowSearchQuery:
                 Show.title,
                 Show.synopsis,
                 Show.image_url,
-                Show.genre,
+                Show.genre_id,
+                Genre.name.label("genre_name"),
                 func.array_agg(
                     aggregate_order_by(distinct(Session.starts_at), Session.starts_at.asc())
                 ).label("upcoming_dates"),
@@ -43,8 +45,9 @@ class ShowSearchQuery:
                 next_at,
             )
             .join(Session, Session.show_id == Show.id)
-            .where(*self._filters(floor, genres))
-            .group_by(Show.id)
+            .join(Genre, Genre.id == Show.genre_id)
+            .where(*self._filters(floor, genre_id))
+            .group_by(Show.id, Genre.name)
             .order_by(next_at.asc(), Show.id.asc())
         )
 
@@ -56,7 +59,8 @@ class ShowSearchQuery:
                 title=row.title,
                 synopsis=row.synopsis,
                 image_url=row.image_url,
-                genre=row.genre,
+                genre_id=row.genre_id,
+                genre_name=row.genre_name,
                 upcoming_dates=list(row.upcoming_dates),
                 price_min_cents=row.price_min_cents,
                 price_max_cents=row.price_max_cents,
@@ -64,19 +68,8 @@ class ShowSearchQuery:
             for row in rows
         ], total
 
-    async def list_genres_in_catalog(self, *, floor: datetime) -> list[str]:
-        result = await self._session.execute(
-            select(Show.genre)
-            .join(Session, Session.show_id == Show.id)
-            .where(*self._filters(floor, None))
-            .group_by(Show.genre)
-            .order_by(Show.genre.asc())
-        )
-
-        return list(result.scalars().all())
-
     @staticmethod
-    def _filters(floor: datetime, genres: list[str] | None) -> list:
+    def _filters(floor: datetime, genre_id: UUID | None) -> list:
         filters = [
             Show.is_active.is_(True),
             Show.status == ShowStatus.PUBLISHED,
@@ -85,7 +78,7 @@ class ShowSearchQuery:
             Session.starts_at >= floor,
         ]
 
-        if genres is not None:
-            filters.append(Show.genre.in_(genres))
+        if genre_id is not None:
+            filters.append(Show.genre_id == genre_id)
 
         return filters

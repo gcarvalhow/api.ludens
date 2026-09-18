@@ -24,6 +24,7 @@ class AdminShowSummaryResponse(BaseModel):
     title: str
     synopsis: str
     image_url: str
+    genre_id: UUID
     genre: str
     status: Literal["draft", "published"]
 
@@ -35,14 +36,15 @@ class ShowCardResponse(BaseModel):
     title: str
     synopsis_short: str
     image_url: str
+    genre_id: UUID
     genre: str
     upcoming_dates: list[datetime]
     price_min: float
     price_max: float
 
 class GenreResponse(BaseModel):
-    slug: str
-    label: str
+    id: UUID
+    name: str
 
 class SessionSummaryResponse(BaseModel):
     id: UUID
@@ -57,6 +59,7 @@ class ShowDetailResponse(BaseModel):
     title: str
     synopsis: str
     image_url: str
+    genre_id: UUID
     genre: str
     sessions: list[SessionSummaryResponse]
 

@@ -6,27 +6,23 @@ from datetime import date, datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.domain.errors import ConflictError, NotFoundError
 from app.core.shared import Page, PaginationParams
+from app.core.domain.errors import ConflictError, NotFoundError
 
-from app.modules.catalog.domain.aggregates import SeatCounts, Session, Show
 from app.modules.catalog.application.schemas.request import ShowRequest
+from app.modules.catalog.domain.aggregates import Genre, SeatCounts, Session, Show
 from app.modules.catalog.application.schemas.response import (
     AdminShowResponse,
     AdminShowSummaryResponse,
-    GenreResponse,
     ShowCardResponse,
     SessionSummaryResponse,
     ShowDetailResponse,
 )
+from app.modules.catalog.application.usecases.utils import floor_from
 from app.modules.catalog.application.mappers import card_response, session_response
-from app.modules.catalog.application.usecases.utils import slugify, floor_from
 
 from app.modules.catalog.infrastructure.queries import ShowSearchQuery
-from app.modules.catalog.infrastructure.repositories import (
-    SessionRepository,
-    ShowRepository,
-)
+from app.modules.catalog.infrastructure.repositories import GenreRepository, SessionRepository, ShowRepository
 
 _DEFAULT_SHOW_IMAGES = [
     "/images/show-placeholders/1.jpg",
@@ -37,19 +33,22 @@ _DEFAULT_SHOW_IMAGES = [
     "/images/show-placeholders/6.jpg",
 ]
 
-def _show_summary(show: Show) -> AdminShowSummaryResponse:
+def _show_summary(show: Show, genre_name: str) -> AdminShowSummaryResponse:
     return AdminShowSummaryResponse(
         id=show.id,
         title=show.title,
         synopsis=show.synopsis,
         image_url=show.image_url,
-        genre=show.genre,
+        genre_id=show.genre_id,
+        genre=genre_name,
         status=show.status.value,
     )
 
-def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime) -> AdminShowResponse:
+def _show_response(
+    show: Show, genre_name: str, sessions: list[Session], counts_map: dict[UUID, SeatCounts], now: datetime
+) -> AdminShowResponse:
     return AdminShowResponse(
-        **_show_summary(show).model_dump(),
+        **_show_summary(show, genre_name).model_dump(),
         sessions=[
             session_response(s, counts_map.get(s.id, SeatCounts(0, 0)), now) for s in sessions
         ],
@@ -71,26 +70,29 @@ class ShowUseCase:
     def __init__(self, session: AsyncSession) -> None:
         self._show_repository = ShowRepository(session)
         self._session_repository = SessionRepository(session)
+        self._genre_repository = GenreRepository(session)
         self._show_search_query = ShowSearchQuery(session)
 
     async def create_show(self, req: ShowRequest) -> AdminShowResponse:
+        genre = await self._require_genre(req.genre_id)
         show = Show.create(
             title=req.title,
             synopsis=req.synopsis,
             image_url=random.choice(_DEFAULT_SHOW_IMAGES),
-            genre=req.genre,
+            genre_id=genre.id,
         )
 
         await self._show_repository.save(show)
-        return _show_response(show, [], {}, datetime.now(timezone.utc))
+        return _show_response(show, genre.name, [], {}, datetime.now(timezone.utc))
 
     async def update_show(self, show_id: UUID, req: ShowRequest) -> AdminShowResponse:
         show = await self._require_show(show_id)
+        genre = await self._require_genre(req.genre_id)
         show.update(
             title=req.title,
             synopsis=req.synopsis,
             image_url=show.image_url,
-            genre=req.genre,
+            genre_id=genre.id,
         )
 
         await self._show_repository.save(show)
@@ -122,29 +124,25 @@ class ShowUseCase:
         await self._show_repository.save(show)
 
     async def search(
-        self, *, from_date: date | None, genre: str | None, pagination: PaginationParams, is_admin: bool
+        self, *, from_date: date | None, genre_id: UUID | None, pagination: PaginationParams, is_admin: bool
     ) -> Page[AdminShowSummaryResponse] | Page[ShowCardResponse]:
         if is_admin:
             shows, total = await self._show_repository.find_all_paginated(
                 order_by=["-created_at"], page=pagination.page, size=pagination.size
             )
+            genres = await self._genre_repository.find_all_by_ids([s.genre_id for s in shows])
+            names = {g.id: g.name for g in genres}
+
             return Page(
-                items=[_show_summary(s) for s in shows],
+                items=[_show_summary(s, names.get(s.genre_id, "")) for s in shows],
                 page=pagination.page,
                 size=pagination.size,
                 total=total,
             )
 
         floor = floor_from(from_date)
-        genres: list[str] | None = None
-
-        if genre is not None:
-            genres = await self._resolve_genres(genre, floor)
-            if not genres:
-                return Page(items=[], page=pagination.page, size=pagination.size, total=0)
-
         rows, total = await self._show_search_query.search_with_upcoming(
-            floor=floor, genres=genres, page=pagination.page, size=pagination.size
+            floor=floor, genre_id=genre_id, page=pagination.page, size=pagination.size
         )
 
         return Page(
@@ -153,17 +151,6 @@ class ShowUseCase:
             size=pagination.size,
             total=total,
         )
-
-    async def list_genres(self) -> list[GenreResponse]:
-        labels = await self._show_search_query.list_genres_in_catalog(
-            floor=datetime.now(timezone.utc)
-        )
-
-        by_slug: dict[str, str] = {}
-        for label in labels:
-            by_slug.setdefault(slugify(label), label)
-
-        return [GenreResponse(slug=slug, label=label) for slug, label in by_slug.items()]
 
     async def get_show_detail(self, show_id: UUID, *, is_admin: bool) -> AdminShowResponse | ShowDetailResponse:
         show = await self._require_show(show_id)
@@ -181,21 +168,19 @@ class ShowUseCase:
             if s.starts_at > now
         ]
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
+        genre = await self._require_genre(show.genre_id)
 
         return ShowDetailResponse(
             id=show.id,
             title=show.title,
             synopsis=show.synopsis,
             image_url=show.image_url,
-            genre=show.genre,
+            genre_id=show.genre_id,
+            genre=genre.name,
             sessions=[
                 _session_summary(s, counts.get(s.id, SeatCounts(0, 0)), now) for s in sessions
             ],
         )
-
-    async def _resolve_genres(self, slug: str, floor: datetime) -> list[str]:
-        labels = await self._show_search_query.list_genres_in_catalog(floor=floor)
-        return [label for label in labels if slugify(label) == slug]
 
     async def _require_show(self, show_id: UUID) -> Show:
         show = await self._show_repository.find_by("id", show_id)
@@ -204,8 +189,16 @@ class ShowUseCase:
 
         return show
 
+    async def _require_genre(self, genre_id: UUID) -> Genre:
+        genre = await self._genre_repository.find_by("id", genre_id)
+        if genre is None:
+            raise NotFoundError("Gênero não encontrado.")
+
+        return genre
+
     async def _view_for(self, show: Show) -> AdminShowResponse:
         sessions = await self._session_repository.find_all_by(show_id=show.id, order_by=["starts_at"])
         counts = {s.id: SeatCounts(0, 0) for s in sessions}
+        genre = await self._require_genre(show.genre_id)
 
-        return _show_response(show, sessions, counts, datetime.now(timezone.utc))
+        return _show_response(show, genre.name, sessions, counts, datetime.now(timezone.utc))

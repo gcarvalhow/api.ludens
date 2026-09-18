@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.domain.errors import ConflictError, DomainError, NotFoundError
 
-from app.modules.catalog.domain.aggregates import SeatCounts, Session
 from app.modules.catalog.domain.enumerations import SessionStatus
+from app.modules.catalog.domain.aggregates import SeatCounts, Session
 from app.modules.catalog.application.schemas.request import SessionRequest
 from app.modules.catalog.application.schemas.response import (
     AdminSessionResponse,
@@ -16,12 +16,9 @@ from app.modules.catalog.application.schemas.response import (
     SessionShowRef,
     TicketTypeResponse,
 )
-from app.core.shared import cents_from_reais, reais_from_cents
 from app.modules.catalog.application.mappers import session_response
-from app.modules.catalog.infrastructure.repositories import (
-    SessionRepository,
-    ShowRepository,
-)
+from app.modules.catalog.application.utils import cents_from_reais, reais_from_cents
+from app.modules.catalog.infrastructure.repositories import SessionRepository, ShowRepository
 
 class SessionUseCase:
     def __init__(self, session: AsyncSession) -> None:

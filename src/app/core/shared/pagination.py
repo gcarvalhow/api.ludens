@@ -20,10 +20,7 @@ class PaginationParams:
     size: int
 
 def make_pagination_params(*, default_size: int = 20, max_size: int = 50) -> Callable[..., PaginationParams]:
-    def _dependency(
-        page: int = Query(default=1, ge=1),
-        size: int = Query(default=default_size, ge=1, le=max_size),
-    ) -> PaginationParams:
+    def _dependency(page: int = Query(default=1, ge=1), size: int = Query(default=default_size, ge=1, le=max_size)) -> PaginationParams:
         return PaginationParams(page=page, size=size)
 
     return _dependency

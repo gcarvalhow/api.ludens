@@ -1,7 +1,8 @@
 from sqlalchemy import func, select
 
 from app.modules.identity.domain.aggregates import User
-from app.core.infrastructure.repositories import AggregateRepository, paginate
+from app.core.infrastructure.repositories import AggregateRepository
+from app.core.infrastructure.queries import paginate
 
 class UserRepository(AggregateRepository[User]):
     model = User

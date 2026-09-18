@@ -1,6 +1,6 @@
-from app.modules.catalog.application.schemas.response import ShowCardResponse
 from app.modules.catalog.infrastructure.queries import ShowCardRow
-from app.core.shared import reais_from_cents
+from app.modules.catalog.application.schemas.response import ShowCardResponse
+from app.modules.catalog.application.utils import reais_from_cents
 
 _SYNOPSIS_MAX = 160
 _UPCOMING_DATES_MAX = 5
@@ -17,7 +17,8 @@ def card_response(row: ShowCardRow) -> ShowCardResponse:
         title=row.title,
         synopsis_short=synopsis_short(row.synopsis),
         image_url=row.image_url,
-        genre=row.genre,
+        genre_id=row.genre_id,
+        genre=row.genre_name,
         upcoming_dates=row.upcoming_dates[:_UPCOMING_DATES_MAX],
         price_min=reais_from_cents(row.price_min_cents),
         price_max=reais_from_cents(row.price_max_cents),

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from typing import Sequence
 
-from sqlalchemy import func, select
-from sqlalchemy.engine import Row
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
+from sqlalchemy.engine import Row
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 _TOTAL_LABEL = "__pagination_total"
 

@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.core.domain import ForbiddenError
 from app.core.shared import Page, PaginationParams, make_pagination_params
@@ -23,25 +23,21 @@ from app.modules.identity.application.usecases.user_usecase import UserUseCase
 router = APIRouter(prefix="/identity/users", tags=["02.Identity - User"])
 
 @router.post("", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(body: RegisterRequest, response: Response, session: AsyncSession = Depends(get_db)) -> TokenResponse:
+async def register(
+    body: RegisterRequest, 
+    response: Response, 
+    session: AsyncSession = Depends(get_db)
+) -> TokenResponse:
     token, raw_refresh = await UserUseCase(session).register(body)
     set_refresh_cookie(response, raw_refresh)
 
     return token
 
-@router.get("", response_model=Page[UserResponse])
-async def list_users(
-    pagination: PaginationParams = Depends(make_pagination_params()),
-    session: AsyncSession = Depends(get_db),
-    _admin: User = Depends(require_admin),
-) -> Page[UserResponse]:
-    return await UserUseCase(session).list_users(pagination)
-
 @router.patch("", response_model=UserResponse)
-async def update_profile(
-    body: UpdateProfileRequest,
-    session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+async def update(
+    body: UpdateProfileRequest, 
+    session: AsyncSession = Depends(get_db), 
+    current_user: User = Depends(get_current_user)
 ) -> UserResponse:
     return await UserUseCase(session).update_profile(current_user, body)
 
@@ -54,19 +50,26 @@ async def request_email_change(
     return await UserUseCase(session).request_email_change(current_user, body)
 
 @router.patch("/email/change", status_code=status.HTTP_204_NO_CONTENT)
-async def confirm_email_change(token: str = Query(...), session: AsyncSession = Depends(get_db)) -> None:
+async def confirm_email_change(
+    token: str = Query(...), 
+    session: AsyncSession = Depends(get_db)
+) -> None:
     await UserUseCase(session).confirm_email_change(token)
 
-@router.post("/deletion", status_code=status.HTTP_202_ACCEPTED)
-async def request_account_deletion(
-    session: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-) -> dict[str, str]:
-    return await UserUseCase(session).request_account_deletion(current_user)
-
 @router.delete("/deletion", status_code=status.HTTP_204_NO_CONTENT)
-async def confirm_account_deletion(token: str = Query(...), session: AsyncSession = Depends(get_db)) -> None:
+async def confirm_deletion(
+    token: str = Query(...), 
+    session: AsyncSession = Depends(get_db)
+) -> None:
     await UserUseCase(session).confirm_account_deletion(token)
+
+@router.get("", response_model=Page[UserResponse])
+async def list_users(
+    pagination: PaginationParams = Depends(make_pagination_params()),
+    session: AsyncSession = Depends(get_db),
+    _admin: User = Depends(require_admin)
+) -> Page[UserResponse]:
+    return await UserUseCase(session).list_users(pagination)
 
 @router.get("/{user_id}", response_model=UserResponse)
 async def get(user_id: UUID, session: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> UserResponse:
