@@ -14,7 +14,7 @@ from app.modules.catalog.application.schemas.request import SessionRequest
 from app.modules.catalog.application.schemas.response import AdminSessionResponse, SessionDetailResponse
 from app.modules.catalog.application.usecases.session_usecase import SessionUseCase
 
-router = APIRouter(prefix="/sessions", tags=["02.Catalog - Session"])
+router = APIRouter(prefix="/catalog/sessions", tags=["02.Catalog - Session"])
 
 @router.post("/", response_model=AdminSessionResponse, status_code=201, dependencies=[Depends(require_admin)])
 async def create(
