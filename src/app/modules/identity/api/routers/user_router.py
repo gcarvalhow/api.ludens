@@ -17,7 +17,7 @@ from app.modules.identity.application.schemas.request import (
 )
 from app.modules.identity.application.schemas.response import TokenResponse, UserResponse
 
-from app.modules.identity.api.routers.utils.cookies import set_refresh_cookie
+from app.modules.identity.shared import set_refresh_cookie
 from app.modules.identity.application.usecases.user_usecase import UserUseCase
 
 router = APIRouter(prefix="/identity/users", tags=["02.Identity - User"])
