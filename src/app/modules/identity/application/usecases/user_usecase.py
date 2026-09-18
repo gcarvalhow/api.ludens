@@ -3,20 +3,22 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.domain import ConflictError, GoneError, NotFoundError
 from app.core.shared import Page, PaginationParams
+from app.core.domain import ConflictError, GoneError, NotFoundError
 
 from app.modules.identity.domain.aggregates import User
-from app.modules.identity.domain.entities.account_deletion_token import AccountDeletionToken
-from app.modules.identity.domain.entities.email_change_token import EmailChangeToken
 from app.modules.identity.domain.value_objects import CPF, Email
+from app.modules.identity.domain.entities.email_change_token import EmailChangeToken
+from app.modules.identity.domain.entities.account_deletion_token import AccountDeletionToken
+
 from app.modules.identity.application.schemas.request import (
     RegisterRequest,
     RequestEmailChangeRequest,
     UpdateProfileRequest,
 )
-from app.modules.identity.application.schemas.response import TokenResponse, UserResponse
+
 from app.modules.identity.application.usecases.utils.session import issue_session
+from app.modules.identity.application.schemas.response import TokenResponse, UserResponse
 
 from app.modules.identity.infrastructure.services import PasswordService, TokenService
 

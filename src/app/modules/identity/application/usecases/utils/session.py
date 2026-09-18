@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta, timezone
 
 from app.config import settings
-from app.modules.identity.application.schemas.response import TokenResponse
+
 from app.modules.identity.domain.aggregates import User
 from app.modules.identity.domain.entities.refresh_token import RefreshToken
-from app.modules.identity.infrastructure.repositories.refresh_token_repository import RefreshTokenRepository
+from app.modules.identity.application.schemas.response import TokenResponse
+
 from app.modules.identity.infrastructure.services.token_service import TokenService
+from app.modules.identity.infrastructure.repositories.refresh_token_repository import RefreshTokenRepository
 
 async def issue_session(
     user: User, token_service: TokenService, refresh_repository: RefreshTokenRepository
