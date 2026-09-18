@@ -28,8 +28,8 @@ class SessionUseCase:
         self._show_repository = ShowRepository(session)
         self._session_repository = SessionRepository(session)
 
-    async def create_session(self, show_id: UUID, req: SessionRequest) -> AdminSessionResponse:
-        show = await self._show_repository.find_by("id", show_id)
+    async def create_session(self, req: SessionRequest) -> AdminSessionResponse:
+        show = await self._show_repository.find_by("id", req.show_id)
         if show is None:
             raise NotFoundError("Espetáculo não encontrado.")
 
@@ -93,17 +93,25 @@ class SessionUseCase:
         session.deactivate()
         await self._session_repository.save(session)
 
-    async def get_session_detail(self, session_id: UUID) -> SessionDetailResponse:
+    async def get_session_detail(self, session_id: UUID, *, is_admin: bool) -> AdminSessionResponse | SessionDetailResponse:
         session = await self._session_repository.find_by("id", session_id)
         if session is None:
             raise NotFoundError("Sessão não encontrada.")
 
         show = await self._show_repository.find_by("id", session.show_id)
-        if show is None or not show.is_published:
+        if show is None:
             raise NotFoundError("Espetáculo não encontrado.")
 
         now = datetime.now(timezone.utc)
-        available = session.available_count(SeatCounts(0, 0))
+        counts = SeatCounts(0, 0)
+
+        if is_admin:
+            return session_response(session, counts, now)
+
+        if not show.is_published:
+            raise NotFoundError("Espetáculo não encontrado.")
+
+        available = session.available_count(counts)
 
         return SessionDetailResponse(
             id=session.id,
@@ -112,7 +120,7 @@ class SessionUseCase:
             venue=session.venue,
             capacity=session.capacity,
             available_count=available,
-            status=session.status_at(now, SeatCounts(0, 0)),
+            status=session.status_at(now, counts),
             ticket_types=[
                 TicketTypeResponse(type="full", price=reais_from_cents(session.full_price_cents)),
                 TicketTypeResponse(type="half", price=reais_from_cents(session.half_price_cents)),
