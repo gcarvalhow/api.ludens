@@ -58,8 +58,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(identity_router)
-app.include_router(catalog_router)
+app.include_router(identity_router, prefix="/api")
+app.include_router(catalog_router, prefix="/api")
 
 @app.get("/health")
 async def health():
