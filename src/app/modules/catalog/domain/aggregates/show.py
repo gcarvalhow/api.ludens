@@ -37,6 +37,10 @@ class Show(AggregateRoot, Model):
         default=ShowStatus.DRAFT,
     )
 
+    @property
+    def is_published(self) -> bool:
+        return self.status is ShowStatus.PUBLISHED
+
     @classmethod
     def create(cls, *, title: str, synopsis: str, image_url: str, genre: str) -> "Show":
         show = cls()

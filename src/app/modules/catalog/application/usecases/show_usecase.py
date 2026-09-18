@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.domain.errors import ConflictError, NotFoundError
 from app.core.shared import Page, PaginationParams
 
-from app.modules.catalog.domain.aggregates import Session, Show
+from app.modules.catalog.domain.aggregates import SeatCounts, Session, Show
 from app.modules.catalog.application.schemas.request import ShowRequest
 from app.modules.catalog.application.schemas.response import (
     AdminShowResponse,
@@ -19,17 +19,10 @@ from app.modules.catalog.application.schemas.response import (
     SessionSummaryResponse,
     ShowDetailResponse,
 )
-from app.modules.catalog.application.usecases.utils.genre_slug import slugify
-from app.modules.catalog.application.usecases.utils.show_card import card_response
-from app.modules.catalog.application.usecases.utils.search_floor import floor_from
-from app.modules.catalog.application.usecases.utils.published_show import require_published_show
-from app.modules.catalog.application.usecases.utils.session_response import session_response
-from app.modules.catalog.application.usecases.utils.session_availability import (
-    SeatCounts,
-    available_count,
-    session_status,
-)
+from app.modules.catalog.application.mappers import card_response, session_response
+from app.modules.catalog.application.usecases.utils import slugify, floor_from
 
+from app.modules.catalog.infrastructure.queries import ShowSearchQuery
 from app.modules.catalog.infrastructure.repositories import (
     SessionRepository,
     ShowRepository,
@@ -63,7 +56,7 @@ def _show_response(show: Show, sessions: list[Session], counts_map: dict[UUID, S
     )
 
 def _session_summary(session: Session, counts: SeatCounts, now: datetime) -> SessionSummaryResponse:
-    available = available_count(session, counts)
+    available = session.available_count(counts)
 
     return SessionSummaryResponse(
         id=session.id,
@@ -71,13 +64,14 @@ def _session_summary(session: Session, counts: SeatCounts, now: datetime) -> Ses
         venue=session.venue,
         capacity=session.capacity,
         available_count=available,
-        status=session_status(session, available, now),
+        status=session.status_at(now, counts),
     )
 
 class ShowUseCase:
     def __init__(self, session: AsyncSession) -> None:
         self._show_repository = ShowRepository(session)
         self._session_repository = SessionRepository(session)
+        self._show_search_query = ShowSearchQuery(session)
 
     async def list_shows(self) -> list[AdminShowSummaryResponse]:
         shows = await self._show_repository.find_all(order_by=["-created_at"])
@@ -144,7 +138,7 @@ class ShowUseCase:
             if not genres:
                 return Page(items=[], page=pagination.page, size=pagination.size, total=0)
 
-        rows, total = await self._show_repository.search_with_upcoming(
+        rows, total = await self._show_search_query.search_with_upcoming(
             floor=floor, genres=genres, page=pagination.page, size=pagination.size
         )
 
@@ -156,7 +150,7 @@ class ShowUseCase:
         )
 
     async def list_genres(self) -> list[GenreResponse]:
-        labels = await self._show_repository.list_genres_in_catalog(
+        labels = await self._show_search_query.list_genres_in_catalog(
             floor=datetime.now(timezone.utc)
         )
 
@@ -167,7 +161,9 @@ class ShowUseCase:
         return [GenreResponse(slug=slug, label=label) for slug, label in by_slug.items()]
 
     async def get_show_detail(self, show_id: UUID) -> ShowDetailResponse:
-        show = await require_published_show(self._show_repository, show_id)
+        show = await self._require_show(show_id)
+        if not show.is_published:
+            raise NotFoundError("Espetáculo não encontrado.")
         now = datetime.now(timezone.utc)
 
         sessions = [
@@ -189,7 +185,7 @@ class ShowUseCase:
         )
 
     async def _resolve_genres(self, slug: str, floor: datetime) -> list[str]:
-        labels = await self._show_repository.list_genres_in_catalog(floor=floor)
+        labels = await self._show_search_query.list_genres_in_catalog(floor=floor)
         return [label for label in labels if slugify(label) == slug]
 
     async def _require_show(self, show_id: UUID) -> Show:

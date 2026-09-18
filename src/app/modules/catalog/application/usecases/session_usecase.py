@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.domain.errors import ConflictError, DomainError, NotFoundError
 
-from app.modules.catalog.domain.aggregates import Session
+from app.modules.catalog.domain.aggregates import SeatCounts, Session
 from app.modules.catalog.domain.enumerations import SessionStatus
 from app.modules.catalog.application.schemas.request import SessionRequest
 from app.modules.catalog.application.schemas.response import (
@@ -16,14 +16,8 @@ from app.modules.catalog.application.schemas.response import (
     SessionShowRef,
     TicketTypeResponse,
 )
-from app.modules.catalog.application.usecases.utils.money import cents_from_reais, reais_from_cents
-from app.modules.catalog.application.usecases.utils.published_show import require_published_show
-from app.modules.catalog.application.usecases.utils.session_response import session_response
-from app.modules.catalog.application.usecases.utils.session_availability import (
-    SeatCounts,
-    available_count,
-    session_status,
-)
+from app.core.shared import cents_from_reais, reais_from_cents
+from app.modules.catalog.application.mappers import session_response
 from app.modules.catalog.infrastructure.repositories import (
     SessionRepository,
     ShowRepository,
@@ -104,9 +98,12 @@ class SessionUseCase:
         if session is None:
             raise NotFoundError("Sessão não encontrada.")
 
-        show = await require_published_show(self._show_repository, session.show_id)
-        available = available_count(session, SeatCounts(0, 0))
+        show = await self._show_repository.find_by("id", session.show_id)
+        if show is None or not show.is_published:
+            raise NotFoundError("Espetáculo não encontrado.")
+
         now = datetime.now(timezone.utc)
+        available = session.available_count(SeatCounts(0, 0))
 
         return SessionDetailResponse(
             id=session.id,
@@ -115,7 +112,7 @@ class SessionUseCase:
             venue=session.venue,
             capacity=session.capacity,
             available_count=available,
-            status=session_status(session, available, now),
+            status=session.status_at(now, SeatCounts(0, 0)),
             ticket_types=[
                 TicketTypeResponse(type="full", price=reais_from_cents(session.full_price_cents)),
                 TicketTypeResponse(type="half", price=reais_from_cents(session.half_price_cents)),
