@@ -1,9 +1,20 @@
 # terraform/
 
 Infraestrutura Azure de `api.ludens`: Resource Group, Azure Database for PostgreSQL Flexible
-Server, e o Azure App Service (Linux, container) que roda a API. Segredos (senha do Postgres,
-`JWT_SECRET_KEY`) são gerados pelo próprio Terraform (`random_password`) e expostos só via
-Application Settings do App Service — sem Key Vault, proporcional à escala do projeto.
+Server, Azure Communication Services (e-mail transacional) e o Azure App Service (Linux,
+container) que roda a API. Segredos (senha do Postgres, `JWT_SECRET_KEY`, connection string do
+ACS) são gerados/lidos pelo próprio Terraform e expostos só via Application Settings do App
+Service — sem Key Vault, proporcional à escala do projeto.
+
+## E-mail transacional (Azure Communication Services)
+
+O módulo `acs` provisiona um `azurerm_communication_service` + `azurerm_email_communication_service`
+com domínio **gerenciado pelo Azure** (`AzureManagedDomain` — algo como `xxxx.azurecomm.net`,
+verificado automaticamente, sem precisar de registro DNS) — mesma lógica de "sem domínio próprio
+por enquanto" da seção abaixo. `EMAIL_BACKEND` já vai como `"acs"` nas Application Settings do
+App Service, com `ACS_CONNECTION_STRING`/`ACS_SENDER_ADDRESS` preenchidos pelos outputs desse
+módulo. Quando existir um domínio próprio de verdade, trocar `domain_management` pra
+`"CustomerManaged"` em `modules/acs/main.tf` (exige verificação DNS, que hoje não existe).
 
 ## Bootstrap do state remoto (uma vez só, manual)
 
@@ -53,15 +64,10 @@ quando isso for resolvido, sem bloquear o resto.
 
 ## O que ainda falta (outras issues da Workstream D)
 
-- **#50** — módulo Terraform pro Azure Communication Services; troca `EMAIL_BACKEND` de `smtp`
-  pra `acs` neste módulo e preenche `ACS_CONNECTION_STRING`/`ACS_SENDER_ADDRESS`. **Até lá,
-  e-mail transacional fica inoperante em produção** — `EMAIL_BACKEND=smtp` sem `SMTP_HOST`
-  reachable (o Mailpit só existe no `docker-compose` de dev local); é um gap conhecido e
-  deliberado, não um bug.
 - **#52** — pipeline de deploy (`terraform plan`/`apply` via GitHub Actions + deploy da imagem
-  Docker no App Service). Também é responsabilidade da #52 garantir que o pacote
+  Docker no App Service). É responsabilidade da #52 garantir que o pacote
   `ghcr.io/gcarvalhow/api.ludens` seja **público** — o `app_service` deste módulo não configura
-  nenhuma credencial de registro (decisão desta issue: pacote público, sem `docker_registry_url`
+  nenhuma credencial de registro (decisão da #49: pacote público, sem `docker_registry_url`
   nem `DOCKER_REGISTRY_SERVER_*`), então um pacote privado quebra o `docker pull` do App Service
   na subida do container. Pacotes GHCR podem nascer privados por padrão mesmo em repositório
   público — confirmar a visibilidade antes/durante a #52.
