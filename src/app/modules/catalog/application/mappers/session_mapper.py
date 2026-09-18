@@ -5,6 +5,9 @@ from app.modules.catalog.application.schemas.response import AdminSessionRespons
 from app.modules.catalog.application.utils import reais_from_cents
 
 def session_response(session: Session, counts: SeatCounts, now: datetime) -> AdminSessionResponse:
+    # AdminSessionResponse.status não tem "sold_out" (admin já vê tickets_sold/
+    # reserved_open crus) — rebaixa o "sold_out" de Session.status_at pra "on_sale"
+    # só nesta visão administrativa.
     public_status = session.status_at(now, counts)
     status = "on_sale" if public_status == "sold_out" else public_status
 

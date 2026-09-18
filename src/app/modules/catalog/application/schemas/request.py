@@ -8,6 +8,14 @@ from pydantic import BaseModel, Field, field_validator
 class GenreRequest(BaseModel):
     name: str = Field(min_length=1, max_length=80)
 
+    @field_validator("name")
+    @classmethod
+    def _strip(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("nome do gênero não pode ser vazio")
+        return stripped
+
 class ShowRequest(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     synopsis: str = Field(min_length=1, max_length=5000)

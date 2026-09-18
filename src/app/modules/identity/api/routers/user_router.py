@@ -56,9 +56,16 @@ async def confirm_email_change(
 ) -> None:
     await UserUseCase(session).confirm_email_change(token)
 
+@router.post("/deletion", status_code=status.HTTP_202_ACCEPTED)
+async def request_deletion(
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> dict[str, str]:
+    return await UserUseCase(session).request_account_deletion(current_user)
+
 @router.delete("/deletion", status_code=status.HTTP_204_NO_CONTENT)
 async def confirm_deletion(
-    token: str = Query(...), 
+    token: str = Query(...),
     session: AsyncSession = Depends(get_db)
 ) -> None:
     await UserUseCase(session).confirm_account_deletion(token)
