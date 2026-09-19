@@ -1,5 +1,11 @@
 # api.ludens
 
+> *Plataforma de Venda de Ingressos para Teatro Comunitário*
+
+<p align="center">
+  <img src=".github/assets/banner.svg" alt="ludens" width="720">
+</p>
+
 Backend da plataforma **Ludens** — a plataforma web de venda de ingressos de um
 teatro comunitário: buscar espetáculos, reservar assentos, pagar por Pix e
 receber o ingresso. API em **FastAPI**, com **monólito modular + DDD**,
