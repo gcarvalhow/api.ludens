@@ -36,4 +36,13 @@ include = ["app*"]   # src/migrations não é pacote Python
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 asyncio_mode = "auto"
+# Fixtures async (ex. `engine` em tests/conftest.py) são session-scoped — asyncpg
+# não aceita reusar uma conexão criada num event loop diferente do da fixture,
+# então o loop também precisa ser session-scoped (senão cada teste ganha um loop
+# novo e a conexão da fixture quebra com "another operation is in progress").
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 testpaths = ["tests"]
+markers = [
+    "integration: exercita usecases/repositórios contra um Postgres real (docker/docker-compose.Staging.yml).",
+]
