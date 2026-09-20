@@ -58,7 +58,6 @@ def test_publish_changes_status_and_raises_event():
     assert len(events) == 1
     assert isinstance(events[0], ShowPublished)
 
-
 def test_publish_when_already_published_is_a_noop():
     show = _create()
     show.publish()
@@ -68,7 +67,6 @@ def test_publish_when_already_published_is_a_noop():
 
     assert show.dequeue_events() == []
     assert show.version == 2
-
 
 def test_unpublish_changes_status_and_raises_event():
     show = _create()

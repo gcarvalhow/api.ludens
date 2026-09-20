@@ -1,7 +1,6 @@
 from app.modules.catalog.domain.aggregates import Genre
 from app.modules.catalog.domain.events import GenreCreated, GenreDeactivated, GenreUpdated
 
-
 def test_create_sets_name_and_active():
     genre = Genre.create(name="Comédia")
 
