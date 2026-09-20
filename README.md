@@ -41,6 +41,7 @@ README cobre o suficiente para entender, rodar e contribuir com o backend.
 | Persistência | PostgreSQL · SQLAlchemy (async) · Alembic (migrations) |
 | Configuração | `pydantic-settings` (lê de `.env.local`) |
 | Runtime | Docker / Docker Compose |
+| Qualidade | Pytest (testes) — portão de merge |
 
 ## Arquitetura em resumo
 
@@ -79,7 +80,8 @@ src/app/
                          #   (entram por spec, uma feature por vez)
   migrations/            # Alembic (env.py + versions/)
 alembic.ini             # aponta para src/migrations; rodar da raiz do repo
-docker/                  # docker-compose.Development.yml
+docker/                  # docker-compose.Development.yml, docker-compose.Staging.yml
+tests/                   # testes de domínio (sem DB) e de usecase (Postgres real)
 ```
 
 > Os módulos de negócio são implementados **um por vez, a partir de uma spec** em
@@ -160,6 +162,25 @@ pagamento e e-mail, `RESERVATION_TTL_MINUTES` e `MAX_TICKETS_PER_CPF` para a
 reserva). O `.env.example` lista todas, comentadas até a feature entrar.
 **Nenhum segredo é versionado** — só o `.env.example`, com os campos SECRET em branco.
 
+## Testes
+
+Ao contrário da API em si, os testes rodam com Python local (é como o CI
+roda também — ver [`backend/testing.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md)),
+não em contêiner:
+
+```bash
+pip install ".[dev]"      # Python 3.12
+pytest -q                 # testes de domínio (sem DB) e de usecase (Postgres real via contêiner)
+```
+
+O foco dos testes são as **regras de negócio da camada de domínio** — reserva e
+compra, controle de disponibilidade (concorrência), preço de meia-entrada,
+reembolso. Estratégia completa em
+[`docs.ludens/backend/testing.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md).
+
+**Portões de merge** (CI em `push`/PR para `master`): `pytest -q` verde ·
+`docker build` limpo · **1 aprovação** de outro desenvolvedor.
+
 ## Plugin do time e fluxo de trabalho
 
 O repo consome o plugin Claude Code
@@ -186,7 +207,7 @@ fluxo Trunk-Based: `/team-ludens:tbd-start` (issue + branch) → implementação
 
 - [Arquitetura do backend](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/overview.md) · [ADRs](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/backend/design)
 - [Autenticação e variáveis de ambiente](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/backend/security)
-- [Guia de estilo](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/code-style.md)
+- [Guia de estilo](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/code-style.md) · [Testes e CI](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md)
 - [Specs das features (N1)](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/specs)
 - [Ambiente de desenvolvimento](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/team/development.md)
 

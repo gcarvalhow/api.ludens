@@ -1,7 +1,9 @@
+import asyncio
 import os
 import pytest_asyncio
 
 from app.core.domain import Model
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 # Must run before any `import app...`: Settings (src/app/config.py) requires
@@ -20,8 +22,18 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-with-at-least-32-bytes-
 async def engine():
     test_engine = create_async_engine(TEST_DATABASE_URL)
 
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Model.metadata.create_all)
+    # CI starts the Postgres container right before this fixture runs
+    # (`docker compose up -d` has no wait-for-ready step) — retry instead of
+    # failing on the first connection attempt while it finishes booting.
+    for attempt in range(10):
+        try:
+            async with test_engine.begin() as conn:
+                await conn.run_sync(Model.metadata.create_all)
+            break
+        except (OperationalError, OSError):
+            if attempt == 9:
+                raise
+            await asyncio.sleep(1)
 
     yield test_engine
 
