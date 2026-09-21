@@ -154,7 +154,7 @@ Lidas de `.env.local` por `src/app/config.py`. Classificação de segurança em
 | `JWT_SECRET_KEY` | SECRET | *(vazio)* | Assina o *access token* JWT. Gere com `openssl rand -hex 32`. |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | CONFIG | `30` | Validade do *access token*. |
 | `REFRESH_TOKEN_EXPIRE_DAYS` | CONFIG | `7` | Validade do *refresh token* (cookie `HttpOnly`). |
-| `ALLOWED_ORIGINS` | CONFIG | `["http://localhost:5173"]` | Origens liberadas no CORS (lista JSON). O frontend Vite roda em `:5173`. |
+| `ALLOWED_ORIGINS` | CONFIG | `["http://localhost:3000"]` | Origens liberadas no CORS (lista JSON). Em produção inclui `https://web-ludens.vercel.app`. |
 | `OUTBOX_RELAY_INTERVAL_SECONDS` | CONFIG | `2` | Intervalo de *polling* do relay do outbox. |
 
 Cada feature acrescenta as próprias variáveis (ex.: `ABACATEPAY_*` e `SMTP_*` para

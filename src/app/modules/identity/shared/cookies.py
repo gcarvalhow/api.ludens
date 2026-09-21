@@ -6,12 +6,19 @@ REFRESH_COOKIE = "refresh_token"
 REFRESH_PATH = "/api/identity/authentication"
 
 def set_refresh_cookie(response: Response, raw_refresh: str) -> None:
+    # api.ludens (azurewebsites.net) and web.ludens (vercel.app) are different
+    # eTLD+1 domains — SameSite=Strict/Lax never sends the cookie on a
+    # cross-site request, silently breaking refresh from the real frontend.
+    # SameSite=None requires Secure, which local dev (plain HTTP) can't set —
+    # browsers reject the cookie outright if None ever ships without Secure,
+    # so dev keeps Lax (same-site there anyway: SameSite ignores port).
+    is_dev = settings.environment == "development"
     response.set_cookie(
         key=REFRESH_COOKIE,
         value=raw_refresh,
         httponly=True,
-        secure=settings.environment != "development",
-        samesite="strict",
+        secure=not is_dev,
+        samesite="lax" if is_dev else "none",
         path=REFRESH_PATH,
         max_age=settings.refresh_token_expire_days * 24 * 3600,
     )
