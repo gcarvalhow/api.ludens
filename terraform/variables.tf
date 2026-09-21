@@ -51,19 +51,19 @@ variable "postgres_admin_username" {
   default = "ludensadmin"
 }
 
-# No custom domain yet (see the plan's "Domínio" note) — these default to the
-# same placeholders app/config.py itself falls back to in development. Update
-# once a real frontend origin/domain exists; nothing here assumes ludens.app.
+# web.ludens's stable production URL on Vercel (confirmed with the user
+# 2026-09-21, not a per-deploy preview alias) — localhost stays in the list
+# too so a local frontend dev server can still hit the production API.
 variable "allowed_origins" {
   description = "CORS-allowed origins"
   type        = list(string)
-  default     = ["http://localhost:3000"]
+  default     = ["http://localhost:3000", "https://web-ludens.vercel.app"]
 }
 
 variable "frontend_base_url" {
   description = "Base URL used to build links in transactional e-mails"
   type        = string
-  default     = "http://localhost:3000"
+  default     = "https://web-ludens.vercel.app"
 }
 
 variable "email_from_address" {
