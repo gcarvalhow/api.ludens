@@ -16,6 +16,14 @@ resource "azurerm_postgresql_flexible_server" "this" {
   authentication {
     password_auth_enabled = true
   }
+
+  # Azure auto-assigns an availability zone on create (no HA standby
+  # configured here, so there's nothing to "swap" it with) — Terraform can't
+  # change it back to unset without erroring, and there's no reason to fight
+  # whatever zone Azure already picked for a single-instance server.
+  lifecycle {
+    ignore_changes = [zone]
+  }
 }
 
 resource "azurerm_postgresql_flexible_server_database" "this" {

@@ -7,7 +7,13 @@ variable "environment" {
 variable "location" {
   description = "Azure region"
   type        = string
-  default     = "Brazil South"
+  # Brazil South and East US both have a 0 quota for every App Service Basic
+  # SKU (B1/B2/B3) on this subscription (confirmed live against the real
+  # subscription, not documentation) — Central US is the first region that
+  # actually allows creating one. Postgres Flexible Server B1ms confirmed
+  # available there too (App Service and Postgres must share a region — no
+  # cross-region latency between the API and its own database).
+  default = "Central US"
 }
 
 variable "resource_group_name" {
