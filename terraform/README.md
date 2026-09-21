@@ -18,9 +18,15 @@ módulo. Quando existir um domínio próprio de verdade, trocar `domain_manageme
 
 ## Bootstrap do state remoto (uma vez só, manual)
 
+**Já feito** (2026-09-21) — `rg-ludens-tfstate`/`ludensterraformstate` existem em Brazil South.
+A região do state remoto é independente de `var.location` (a infra real hoje vive em Central US,
+ver `variables.tf`) — não precisa mover o Storage Account do state pra acompanhar, não há
+latência relevante entre Terraform rodando localmente/no CI e o Storage Account do state.
+
 O backend `azurerm` (`backend.tf`) guarda o `.tfstate` num Storage Account — mas esse Storage
 Account não pode ser gerenciado pelo próprio Terraform que depende dele pra existir primeiro.
-Criar uma vez, à mão, com a Azure CLI (`az login` antes):
+Criar uma vez, à mão, com a Azure CLI (`az login` antes) — comandos abaixo só se precisar
+recriar do zero (ex. novo ambiente):
 
 ```bash
 az group create --name rg-ludens-tfstate --location "Brazil South"
@@ -53,22 +59,18 @@ terraform apply       # só depois de revisar o plan — cria recursos reais, te
 
 Autenticação com o Azure: `az login` (interativo) ou variáveis `ARM_CLIENT_ID` /
 `ARM_CLIENT_SECRET` / `ARM_SUBSCRIPTION_ID` / `ARM_TENANT_ID` (service principal — é assim que o
-pipeline de deploy, issue #52, vai autenticar via GitHub Actions).
+pipeline de deploy (`.github/workflows/deploy.yml`) autentica via GitHub Actions).
 
-## Sem domínio próprio por enquanto
+## Sem domínio próprio
 
-Sem orçamento pra registrar um domínio (nem o GitHub Student Developer Pack disponível) — a API
-fica no hostname gratuito padrão do App Service (`output.app_service_hostname`, algo como
-`ludens-api.azurewebsites.net`). Domínio próprio e certificado gerenciado ficam pra issue #57
-quando isso for resolvido, sem bloquear o resto.
+Sem orçamento pra registrar um domínio — a API fica no hostname gratuito padrão do App Service
+(`output.app_service_hostname`, `ludens-api.azurewebsites.net`). Domínio próprio ficaria pra uma
+issue nova se/quando isso for viável (a antiga #57 partia de uma premissa errada sobre o domínio
+já ter sido resgatado e foi excluída) — não bloqueia o resto.
 
-## O que ainda falta (outras issues da Workstream D)
+## Status (2026-09-21)
 
-- **#52** — pipeline de deploy (`terraform plan`/`apply` via GitHub Actions + deploy da imagem
-  Docker no App Service). É responsabilidade da #52 garantir que o pacote
-  `ghcr.io/gcarvalhow/api.ludens` seja **público** — o `app_service` deste módulo não configura
-  nenhuma credencial de registro (decisão da #49: pacote público, sem `docker_registry_url`
-  nem `DOCKER_REGISTRY_SERVER_*`), então um pacote privado quebra o `docker pull` do App Service
-  na subida do container. Pacotes GHCR podem nascer privados por padrão mesmo em repositório
-  público — confirmar a visibilidade antes/durante a #52.
-- **#57** — domínio próprio + certificado gerenciado, quando existir orçamento/decisão.
+Deploy real rodado — os 12 recursos deste diretório existem em produção (Central US), a imagem
+`ghcr.io/gcarvalhow/api.ludens` está publicada e **pública** no GHCR, as migrations do Alembic já
+rodaram contra o Postgres real, e `/health`/`/api/catalog/shows` respondem em produção. Nada
+pendente na Workstream D de infra.
