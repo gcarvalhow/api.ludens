@@ -1,5 +1,9 @@
 # pipelines.ludens
 
+Migração CodePenguinsCorp: use `CodePenguinsCorp/pipelines.ludens` nos consumidores.
+O workflow `_terraform.yaml` exige `backend-config` com conteúdo HCL do novo backend Azure.
+Consulte o [guia de infraestrutura](https://github.com/CodePenguinsCorp/docs.ludens/blob/master/team/infra-codepenguins.md).
+
 <p align="center">
   <img src=".github/assets/logo.png" alt="ludens" width="180">
 

@@ -18,6 +18,10 @@ on:
         required: false
         type: string
         default: ''
+      backend-config:
+        description: 'Azure backend configuration, one key=value per line'
+        required: true
+        type: string
     secrets:
       ARM_CLIENT_ID:
         required: true
@@ -49,19 +53,28 @@ jobs:
 
       - name: Set extra TF_VAR_* variables
         if: inputs.tf-vars != ''
-        run: echo "${{ inputs.tf-vars }}" >> "$GITHUB_ENV"
+        env:
+          TF_VARIABLES: ${{ inputs.tf-vars }}
+        run: printf '%s\n' "$TF_VARIABLES" >> "$GITHUB_ENV"
+
+      - name: Configure remote state
+        env:
+          BACKEND_CONFIG: ${{ inputs.backend-config }}
+        run: |
+          test -n "$BACKEND_CONFIG" || { echo 'Terraform backend configuration is required'; exit 1; }
+          printf '%s\n' "$BACKEND_CONFIG" > backend.hcl
 
       - name: Format check
-        run: terraform fmt -check
+        run: terraform fmt -check -recursive
 
       - name: Init
-        run: terraform init
+        run: terraform init -input=false -backend-config=backend.hcl
 
       - name: Validate
         run: terraform validate
 
       - name: Plan
-        run: terraform plan -out=tfplan
+        run: terraform plan -input=false -out=tfplan
 
       - name: Apply
         if: inputs.apply
