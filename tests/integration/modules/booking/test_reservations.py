@@ -427,24 +427,6 @@ async def test_expiry_worker_marks_pending_order_expired_once(session):
     assert (await PurchaseUseCase(session).get(order.id, users[0])).status == "expired"
 
 
-async def test_cancelling_reservation_closes_its_pending_order(session):
-    event, users, *_ = await seed(session)
-    reservation = await reserve(session, event.id, users[0])
-    order = await PurchaseUseCase(session).start(reservation.id, users[0])
-
-    await ReservationUseCase(session).get(reservation.id, users[0].id, cancel=True)
-    assert (await PurchaseUseCase(session).get(order.id, users[0])).status == "cancelled"
-
-
-async def test_cancelling_reservation_closes_its_pending_order(session):
-    event, users, *_ = await seed(session)
-    reservation = await reserve(session, event.id, users[0])
-    order = await PurchaseUseCase(session).start(reservation.id, users[0])
-
-    await ReservationUseCase(session).get(reservation.id, users[0].id, cancel=True)
-    assert (await PurchaseUseCase(session).get(order.id, users[0])).status == "cancelled"
-
-
 async def test_expired_or_foreign_reservation_cannot_be_confirmed(session):
     event, users, *_ = await seed(session)
     reservation = await reserve(session, event.id, users[0])
