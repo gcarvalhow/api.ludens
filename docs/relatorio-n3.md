@@ -43,7 +43,7 @@ Todas as medições foram feitas sobre três versões congeladas:
 | --- | --- | --- |
 | N1 | `gcarvalhow/api.ludens@81acf55`, `web.ludens@7fc0c3e`, `docs.ludens@367ee5b` | o que entregamos |
 | N2 | `CodePenguinsCorp/api.ludens@0a38144`, `web.ludens@5f159c6`, `docs.ludens@3907a99` | o que recebemos de volta |
-| N3 | branch `claude/serene-wright-m41xbn` de `gcarvalhow/api.ludens` | N2 integrada + testes novos da N3 |
+| N3 | `gcarvalhow/api.ludens` com a N2 integrada por fast-forward (local) | N2 integrada + testes novos da N3 |
 
 Ambiente: Python 3.12, PostgreSQL 16 local na porta 5433 (o mesmo banco
 `ludens_test` que o `docker-compose.Staging.yml` sobe), Node 22.
@@ -397,8 +397,9 @@ Defeitos do N1 que a N2 corrigiu, conferidos por nós:
 
 ## Etapa 6. Testes atualizados para os novos cenários
 
-Todos os testes novos estão no branch `claude/serene-wright-m41xbn` de
-`gcarvalhow/api.ludens`, sobre o código da N2 integrado por fast-forward.
+Os testes novos foram escritos e executados sobre o código da N2 integrado
+por fast-forward ao `api.ludens`. Eles ainda não foram publicados no
+repositório: entram junto com o PR de reintegração da Fase 0 (etapa 7).
 
 | Arquivo | Testes | Cenário |
 | --- | --- | --- |
@@ -428,8 +429,8 @@ quando o teste esperava 1); foi corrigido no teste, não no código.
 
 Limitações declaradas:
 
-* **Build do frontend não executado nesta análise** (`next build` foi bloqueado
-  pela política de execução do ambiente). A N2 declara build verde no PR #4 do
+* **Build do frontend não executado nesta análise** (`next build` não pôde
+  ser rodado no ambiente usado para a medição). A N2 declara build verde no PR #4 do
   `web.ludens`; precisamos confirmar no CI.
 * **Playwright não executado** (exige API e navegador rodando).
 * Não temos acesso de escrita a `web.ludens` e `docs.ludens` nesta análise; os
