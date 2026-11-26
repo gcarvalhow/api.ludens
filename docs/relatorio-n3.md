@@ -80,26 +80,30 @@ histórico registrado em `docs.ludens/team/overview.md` (N1) e
 | Pessoa | N1 (Ludens) | N2 (SREC) | **N3 (Ludens)** |
 | --- | --- | --- | --- |
 | Igor Thiago Seberino | Desenvolvedor Backend | Product Owner + QA | **DevOps** |
-| Gabriel Carvalho | Product Owner + DevOps | DevOps | **Desenvolvedor Full-stack** |
-| Adrian Cesar Gonçalves | Quality Assurance | Desenvolvedor Backend | **Engenheiro de Requisitos** |
+| Gabriel Carvalho | Product Owner + DevOps | DevOps | **Engenheiro de Requisitos** |
+| Adrian Cesar Gonçalves | Quality Assurance | Desenvolvedor Backend | **Desenvolvedor Full-stack** |
 | Renato Colin Neto | Engenheiro de Requisitos | Desenvolvedor Frontend | **Quality Assurance** |
 | Diego Nessler | Desenvolvedor Frontend | Engenheiro de Requisitos | **Product Owner** |
 
-Os cinco papéis da N3 são inéditos para quem os assume, e cada pessoa tem um
-papel só (na N2 o Igor acumulou PO e QA, o que gerou conflito de interesse
-registrado na época).
+Quatro dos cinco papéis da N3 são inéditos para quem os assume. A exceção é o
+Adrian, que foi Desenvolvedor Backend na N2 (no SREC) e agora assume o
+desenvolvimento full-stack, ampliado para o frontend. Cada pessoa tem um papel
+só (na N2 o Igor acumulou PO e QA, o que gerou conflito de interesse registrado
+na época).
 
 Por que essa distribuição:
 
 * **Igor (DevOps).** A maior parte do risco de produção encontrado é de
   infraestrutura (DT-05, DT-06, DT-07, DT-14). É o papel que ele ainda não
   exerceu e o que destrava o deploy.
-* **Gabriel (Full-stack).** Escreveu boa parte do código do N1, mas formalmente
-  foi PO e DevOps. Na N3 ele executa a refatoração (etapa 7) e mantém os testes
-  novos; como a N2 tocou backend e frontend juntos em cada feature, um papel
-  único de desenvolvimento evita dividir a mesma fatia entre duas pessoas.
-* **Adrian (Engenheiro de Requisitos).** Dono das etapas 2 e 3: confrontar a
-  documentação da N2 com o código e atualizar o estado de cada RF.
+* **Gabriel (Engenheiro de Requisitos).** Foi PO no N1 e conhece as specs
+  originais do Ludens. Na N3 é dono da documentação e das etapas 2 e 3:
+  confrontar a documentação da N2 com o código, atualizar o estado de cada RF e
+  conduzir a Fase 3 do plano (etapa 7).
+* **Adrian (Full-stack).** Já desenvolveu backend na N2. Na N3 ele executa a
+  refatoração (etapa 7) e mantém os testes novos; como a N2 tocou backend e
+  frontend juntos em cada feature, um papel único de desenvolvimento evita
+  dividir a mesma fatia entre duas pessoas.
 * **Renato (QA).** Dono das etapas 4, 5 e 6: verificar o que foi aplicado,
   regressão e padrões, e aprovar todos os PRs da N3. Ele não escreveu o backend
   nem o código da N2, então revisa sem viés de autoria.
@@ -110,12 +114,12 @@ Por que essa distribuição:
 
 Matriz RACI da N3 (R executa, A aprova, C é consultado, I é informado):
 
-| Atividade | Igor (DevOps) | Gabriel (Dev) | Adrian (Req) | Renato (QA) | Diego (PO) |
+| Atividade | Igor (DevOps) | Gabriel (Req) | Adrian (Dev) | Renato (QA) | Diego (PO) |
 | --- | --- | --- | --- | --- | --- |
-| Analisar a documentação da N2 (etapas 2 e 3) | I | C | **R** | C | A |
+| Analisar a documentação da N2 (etapas 2 e 3) | I | **R** | C | C | A |
 | Verificar o que foi aplicado e os padrões (etapas 4 e 5) | C | C | C | **R** | A |
-| Atualizar os testes (etapa 6) | C | **R** | I | A | I |
-| Reintegrar CI, infraestrutura e deploy | **R** | C | I | C | A |
+| Atualizar os testes (etapa 6) | C | I | **R** | A | I |
+| Reintegrar CI, infraestrutura e deploy | **R** | I | C | C | A |
 | Priorizar débitos e plano de refatoração (etapa 7) | C | C | C | C | **R/A** |
 | Consolidar e entregar o relatório | C | C | C | C | **R/A** |
 
