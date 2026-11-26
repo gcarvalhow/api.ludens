@@ -1,9 +1,9 @@
-name: Deploy
+name: Web Deploy
 
 # Produção: somente pushes na master deste repositório com CI aprovado.
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["Web CI"]
     types: [completed]
 
 permissions:
@@ -21,6 +21,9 @@ jobs:
       github.event.workflow_run.head_branch == 'master' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

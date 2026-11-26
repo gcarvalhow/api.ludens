@@ -1,5 +1,5 @@
 ---
-name: História de usuário
+name: História de usuário (frontend)
 about: Fatia de feature a implementar (a partir de uma spec de docs.ludens/specs/)
 title: "feat: "
 labels: []
