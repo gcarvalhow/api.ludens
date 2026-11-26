@@ -52,8 +52,9 @@ Apresentação em 27/11/2026.
 | --- | --- | --- |
 | Testes da API | 140 passed, 2 xfailed | `cd apps/api && pytest -q` (Postgres 16 na 5433) |
 | Web: lint / unit / proxy / e2e | 0 erros (3 avisos) / 93 passed / 4 passed / 4 passed | `npm run lint`, `npm test`, `npm run test:proxy`, `npm run test:e2e` |
-| CI na `master` (2e1e7ec) | API CI e Web CI verdes; Web Deploy falhou: `--token` sem valor | Actions do repo, run 45874983463 |
-| Render `ludens-api` | Docker, `rootDir` vazio, `dockerfilePath ./Dockerfile`; deploy live = d6f7c89 (antes do monorepo) | API do Render, `GET /v1/services` |
+| CI na `master` (2e1e7ec) | API CI e Web CI verdes | Actions do repo, run 45874983463 |
+| Render `ludens-api` | raiz `apps/api`; deploy `live` = 2e1e7ec; health check `GET /health` → 200 | API do Render, `GET /v1/services/{id}/deploys` e logs |
+| Render `ludens-web` | raiz `apps/web`, `API_PROXY_URL=https://ludens-api.onrender.com`; deploy `live` = 2e1e7ec | API do Render, `GET /v1/services/{id}/deploys` e logs |
 | Dockerfile da API | agora em `apps/api/Dockerfile` | `git ls-files` |
 | Colaboradores do repo | só `igorSeberino` | `GET repos/igorSeberino/api.ludens/collaborators` |
 | Proteção da `master` | nenhuma | `GET .../branches/master/protection` → 404 |
