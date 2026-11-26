@@ -1,0 +1,51 @@
+name: _Template Test
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: 'Directory to install the package and run pytest from'
+        required: false
+        type: string
+        default: '.'
+      compose-file:
+        description: 'Path to a docker-compose file with test dependencies (e.g. Postgres). Skipped if empty.'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start dependencies
+        if: inputs.compose-file != ''
+        run: docker compose -f "${{ inputs.compose-file }}" up -d
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install package
+        working-directory: ${{ inputs.working-directory }}
+        run: pip install ".[dev]"
+
+      - name: Run tests
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          pytest -q
+          code=$?
+          if [ "$code" -eq 5 ]; then
+            echo "No tests collected yet — treating as success."
+            exit 0
+          fi
+          exit $code
+
+      - name: Stop dependencies
+        if: always() && inputs.compose-file != ''
+        run: docker compose -f "${{ inputs.compose-file }}" down
