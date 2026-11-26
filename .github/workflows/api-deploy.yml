@@ -1,0 +1,47 @@
+name: API Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Run terraform apply (default: plan only, no infra change)'
+        required: false
+        type: boolean
+        default: false
+
+# `_publish.yaml` needs `packages: write` to push to GHCR — a called reusable
+# workflow can never get more than the caller grants, so this must be
+# declared here explicitly rather than relying on the org/repo default.
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: azure-production
+  cancel-in-progress: false
+
+jobs:
+  # GHCR packages can be created private even in a public repo. After the
+  # first real run of this job, confirm/flip ghcr.io/gcarvalhow/api.ludens
+  # to public (terraform/README.md already flags this as this issue's job) —
+  # app_service has no registry credentials configured, so a private
+  # package breaks the App Service's docker pull on startup.
+  publish:
+    if: github.ref == 'refs/heads/master'
+    uses: ./.github/workflows/_publish.yaml
+    with:
+      image-name: ghcr.io/gcarvalhow/api.ludens
+      working-directory: apps/api
+    secrets: inherit
+
+  terraform:
+    needs: publish
+    uses: ./.github/workflows/_terraform.yaml
+    with:
+      working-directory: apps/api/terraform
+      apply: ${{ inputs.apply }}
+      # Ties docker_image_name to this commit's sha so Terraform actually
+      # detects a diff and updates the App Service for each deployment.
+      tf-vars: |
+        TF_VAR_docker_image_name=ghcr.io/gcarvalhow/api.ludens:${{ github.sha }}
+    secrets: inherit

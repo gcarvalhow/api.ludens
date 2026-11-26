@@ -1,5 +1,10 @@
-# Ownership de api.ludens (backend). Ver docs.ludens/team/overview.md (RACI).
-*                 @igorSeberino
-/docker/          @gabrielcarvallho @igorSeberino
-/.github/         @gabrielcarvallho @igorSeberino
-/migrations/      @igorSeberino
+# Ownership do monorepo ludens. Ver docs/team/overview.md (RACI).
+# Unificado a partir dos CODEOWNERS de api.ludens e web.ludens.
+
+/apps/api/                @igorSeberino
+/apps/api/docker/         @gabrielcarvallho @igorSeberino
+/apps/api/migrations/     @igorSeberino
+
+/apps/web/                @Diegonessler
+
+/.github/                 @gabrielcarvallho @igorSeberino @Diegonessler

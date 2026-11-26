@@ -1,0 +1,31 @@
+name: API CI
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/api-ci.yml"
+      - ".github/workflows/_test.yaml"
+      - ".github/workflows/_build.yaml"
+  pull_request:
+    branches: [master]
+    paths:
+      - "apps/api/**"
+      - ".github/workflows/api-ci.yml"
+      - ".github/workflows/_test.yaml"
+      - ".github/workflows/_build.yaml"
+
+jobs:
+  test:
+    uses: ./.github/workflows/_test.yaml
+    with:
+      working-directory: apps/api
+      compose-file: apps/api/docker/docker-compose.Staging.yml
+
+  build:
+    needs: test
+    uses: ./.github/workflows/_build.yaml
+    with:
+      image-name: api-ludens:ci
+      working-directory: apps/api
