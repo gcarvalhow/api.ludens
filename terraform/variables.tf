@@ -1,5 +1,5 @@
 variable "docker_image_name" {
-  description = "Public GHCR image with an immutable commit tag"
+  description = "Public GHCR image with an immutable commit tag (set by deploy.yml)"
   type        = string
 }
 
@@ -9,7 +9,12 @@ variable "environment" {
   default     = "production"
 }
 
-# Select a region with App Service and PostgreSQL quota in the new subscription.
+# Brazil South and East US both have a 0 quota for every App Service Basic
+# SKU (B1/B2/B3) on this subscription (confirmed live against the real
+# subscription, not documentation) — Central US is the first region that
+# actually allows creating one. Postgres Flexible Server B1ms confirmed
+# available there too (App Service and Postgres must share a region — no
+# cross-region latency between the API and its own database).
 variable "location" {
   description = "Azure region"
   type        = string
@@ -18,7 +23,7 @@ variable "location" {
 
 variable "resource_group_name" {
   type    = string
-  default = "rg-codepenguins-ludens-production"
+  default = "rg-ludens-production"
 }
 
 # App Service and Postgres names form public hostnames
@@ -28,22 +33,22 @@ variable "resource_group_name" {
 # the variable.
 variable "app_service_name" {
   type    = string
-  default = "codepenguins-ludens-api"
+  default = "ludens-api"
 }
 
 variable "postgres_server_name" {
   type    = string
-  default = "codepenguins-ludens-psql"
+  default = "ludens-psql"
 }
 
 variable "communication_service_name" {
   type    = string
-  default = "codepenguins-ludens-acs"
+  default = "ludens-acs"
 }
 
 variable "email_service_name" {
   type    = string
-  default = "codepenguins-ludens-email"
+  default = "ludens-email"
 }
 
 variable "postgres_admin_username" {
@@ -51,15 +56,19 @@ variable "postgres_admin_username" {
   default = "ludensadmin"
 }
 
-# Explicitly configure the new frontend origins before planning production.
+# web.ludens's stable production URL on Vercel (confirmed with the user
+# 2026-09-21, not a per-deploy preview alias) — localhost stays in the list
+# too so a local frontend dev server can still hit the production API.
 variable "allowed_origins" {
   description = "CORS-allowed origins"
   type        = list(string)
+  default     = ["http://localhost:3000", "https://web-ludens.vercel.app"]
 }
 
 variable "frontend_base_url" {
   description = "Base URL used to build links in transactional e-mails"
   type        = string
+  default     = "https://web-ludens.vercel.app"
 }
 
 variable "email_from_address" {

@@ -3,6 +3,9 @@
 # Bootstrap them once by hand — see README.md.
 terraform {
   backend "azurerm" {
-    # Supplied through -backend-config; see backend.hcl.example.
+    resource_group_name  = "rg-ludens-tfstate"
+    storage_account_name = "ludensterraformstate"
+    container_name       = "tfstate"
+    key                  = "production.tfstate"
   }
 }

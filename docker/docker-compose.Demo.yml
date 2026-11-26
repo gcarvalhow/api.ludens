@@ -9,8 +9,8 @@ x-api: &api
     DATABASE_URL: postgresql+asyncpg://ludens:${POSTGRES_PASSWORD:?Run scripts/Start-Demo.ps1 first}@postgres:5432/ludens
     JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Run scripts/Start-Demo.ps1 first}
     REFRESH_COOKIE_SECURE: "true"
-    ALLOWED_ORIGINS: '["https://codepenguins-web-ludens.vercel.app"]'
-    FRONTEND_BASE_URL: https://codepenguins-web-ludens.vercel.app
+    ALLOWED_ORIGINS: '["https://web-ludens.vercel.app"]'
+    FRONTEND_BASE_URL: https://web-ludens.vercel.app
     EMAIL_BACKEND: smtp
     SMTP_HOST: mailpit
     SMTP_PORT: "1025"
@@ -30,7 +30,7 @@ services:
       timeout: 5s
       retries: 20
   mailpit:
-    image: axllent/mailpit:latest
+    image: axllent/mailpit:v1.21.8
     ports:
       - "127.0.0.1:8025:8025"
   migrations:
@@ -54,7 +54,7 @@ services:
       timeout: 5s
       retries: 10
   tunnel:
-    image: cloudflare/cloudflared:latest
+    image: cloudflare/cloudflared:2024.12.2
     profiles: ["tunnel"]
     command: ["tunnel", "--no-autoupdate", "--url", "http://api:8000"]
     depends_on:
