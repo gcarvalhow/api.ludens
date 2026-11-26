@@ -14,11 +14,20 @@ Monorepo do ludens. Junta os quatro repositórios que antes viviam separados em
 
 O GitHub só lê workflows de `.github/workflows/` na raiz, então eles moram lá:
 
-* `_test.yaml`, `_build.yaml`, `_publish.yaml`, `_terraform.yaml`: templates
-  reutilizáveis vindos de `pipelines.ludens`, agora chamados localmente
-  (`uses: ./.github/workflows/_test.yaml`).
-* `api-ci.yml` e `api-deploy.yml`: rodam só quando `apps/api/**` muda.
-* `web-ci.yml` e `web-deploy.yml`: rodam só quando `apps/web/**` muda.
+* `_test.yaml` e `_build.yaml`: templates reutilizáveis vindos de
+  `pipelines.ludens`, chamados localmente (`uses: ./.github/workflows/_test.yaml`).
+* `api-ci.yml`: roda só quando `apps/api/**` muda.
+* `web-ci.yml`: roda só quando `apps/web/**` muda.
+
+## Deploy
+
+No Render, com deploy automático a cada push na `master`:
+
+* API: serviço `ludens-api` (Docker, raiz `apps/api`), em
+  <https://ludens-api.onrender.com>, com o banco `ludens-db`.
+* Web: serviço `ludens-web` (Node, raiz `apps/web`), em
+  <https://ludens-web.onrender.com>. O Next.js encaminha `/api` para a API
+  pela variável `API_PROXY_URL`.
 
 ## Rodando localmente
 

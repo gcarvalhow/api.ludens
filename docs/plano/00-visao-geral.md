@@ -29,11 +29,11 @@ Apresentação em 27/11/2026.
 | --- | --- | --- | --- | --- |
 | D1 | SonarQube Cloud, analisando `apps/api` e `apps/web` no GitHub Actions a cada push na `master` e a cada PR | Igor | repo público, gratuito, dashboard com link para a apresentação | SonarQube Server local |
 | D2 | "Manutenções" = débitos DT-01 a DT-15 do relatório da N3, cortados pelo prazo de 1 dia (§4) | Igor | lista já medida e priorizada pela equipe | só o que o Sonar apontar |
-| D3 | "Entregável" = `master` com CI verde, API publicada no Render e web publicada na Vercel apontando para essa API, com a jornada de compra simulada funcionando | agente | é o que dá para demonstrar ao vivo em 27/11 | entrega só local |
+| D3 | "Entregável" = `master` com CI verde, API e web publicadas na conta Render do Igor, com a web apontando para essa API, com a jornada de compra simulada funcionando | Igor | tudo na conta do próprio time; dá para demonstrar ao vivo em 27/11 | Vercel e Azure de outras contas; entrega só local |
 | D4 | Papéis da N3: Igor DevOps, Gabriel Eng. de Requisitos, Adrian Dev Full-stack, Renato QA, Diego PO | Igor | mantidos da N3 | novo rodízio |
 | D5 | Diego (PO, dev frontend na N1) também corrige os apontamentos do Sonar no frontend | agente | prazo de 1 dia; Adrian sozinho não cobre backend e frontend | Adrian nos dois |
 | D6 | Renato revisa todos os PRs; o PR do Renato (T6) é revisado pelo Diego | agente | DoD exige aprovação de outra pessoa e o GitHub não deixa aprovar o próprio PR | QA aprovando o próprio PR |
-| D7 | Web na Vercel usa `API_PROXY_URL=https://ludens-api.onrender.com` (rewrite de `apps/web/next.config.mjs`) | agente | navegador chama `/api` no mesmo domínio; o cookie de refresh não vira cookie de terceiro | `NEXT_PUBLIC_API_URL` apontando direto para o Render |
+| D7 | Web no Render usa `API_PROXY_URL=https://ludens-api.onrender.com` (rewrite de `apps/web/next.config.mjs`) | agente | navegador chama `/api` no mesmo domínio; o cookie de refresh não vira cookie de terceiro | `NEXT_PUBLIC_API_URL` apontando direto para o Render |
 
 ## 4. Fora do escopo
 
@@ -42,9 +42,8 @@ Apresentação em 27/11/2026.
 - DT-06 (retentativa do outbox) — mudança de schema e de comportamento sem tempo para teste de falha em 1 dia.
 - DT-07 (`alembic check` no CI) — não aparece no Sonar nem na demonstração.
 - DT-08 (Pix real) — integração externa; a demonstração usa o pagamento simulado.
-- DT-14 (imagens `:latest` no ambiente demo local) — a demonstração usa Render e Vercel, não o túnel.
+- DT-14 (imagens `:latest` no ambiente demo local) — a demonstração usa o Render, não o túnel.
 - DT-15 (`/health` com banco, limite de login) — nenhum R pede; vira issue de débito em T5.
-- `api-deploy.yml` (Azure + `ghcr.io/gcarvalhow`) — não é o deploy em uso (D3); T2 decide remover ou manter desativado.
 - Meta de cobertura de testes no Quality Gate — o enunciado pede o Sonar aplicado, não um percentual.
 
 ## 5. Fatos verificados (26/11/2026)
@@ -98,12 +97,11 @@ e `GET .../invitations` retorna `[]`.
 **T2.**
 - Render `ludens-api` com diretório raiz `apps/api` (ou Dockerfile e contexto apontando para
   lá); deploy do último commit da `master` com status `live`; `GET https://ludens-api.onrender.com/health` → 200.
-- Web publicada na Vercel com `API_PROXY_URL` (D7); no domínio da Vercel é possível cadastrar,
-  entrar e abrir o detalhe de uma sessão.
-- `web-deploy.yml` com `VERCEL_TOKEN`, `VERCEL_ORG_ID` e `VERCEL_PROJECT_ID` configurados, e a
-  execução seguinte na `master` verde; ou o workflow removido, se a Vercel publicar pela
-  integração Git dela.
-- `api-deploy.yml` removido ou sem disparo possível para Azure/`gcarvalhow`.
+- Render `ludens-web` (raiz `apps/web`) com `API_PROXY_URL` (D7) e deploy `live`; em
+  `https://ludens-web.onrender.com` é possível cadastrar, entrar e abrir o detalhe de uma sessão.
+- API com `FRONTEND_BASE_URL` e `ALLOWED_ORIGINS` apontando para `https://ludens-web.onrender.com`.
+- Workflows de deploy de terceiros (`api-deploy.yml`, `web-deploy.yml`, `_publish.yaml`,
+  `_terraform.yaml`) removidos.
 
 **T3.**
 - No SonarQube Cloud, `apps/api`: 0 bugs, 0 vulnerabilidades, 100 % dos security hotspots
@@ -147,5 +145,5 @@ e `GET .../invitations` retorna `[]`.
 
 - [ ] Última execução de API CI, Web CI e da análise Sonar na `master` → verdes
 - [ ] SonarQube Cloud: Quality Gate da `master` → Passed; 0 bugs e 0 vulnerabilidades em `apps/api` e `apps/web`
-- [ ] `GET https://ludens-api.onrender.com/health` → 200; web na Vercel completa a compra simulada
+- [ ] `GET https://ludens-api.onrender.com/health` → 200; web no Render completa a compra simulada
 - [ ] Tabela antes/depois (T6) pronta para a apresentação
