@@ -1,6 +1,7 @@
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -14,10 +15,14 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
+    refresh_cookie_secure: bool | None = None
 
     allowed_origins: list[str] = ["http://localhost:3000"]
 
     outbox_relay_interval_seconds: int = 2
+    reservation_ttl_minutes: int = Field(default=15, gt=0)
+    max_tickets_per_cpf: int = Field(default=6, ge=1, le=6)
+    reservation_expiry_interval_seconds: int = Field(default=5, gt=0)
 
     email_backend: Literal["acs", "smtp"] = "smtp"
     email_from_address: str = "no-reply@ludens.local"

@@ -1,3 +1,8 @@
+variable "docker_image_name" {
+  description = "Public GHCR image with an immutable commit tag (set by deploy.yml)"
+  type        = string
+}
+
 variable "environment" {
   description = "Deployment environment"
   type        = string

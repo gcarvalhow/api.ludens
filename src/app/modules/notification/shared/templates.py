@@ -1,3 +1,45 @@
+from html import escape
+
+
+def order_paid_email(payload: dict) -> tuple[str, str]:
+    subject = "Seus ingressos de demonstração — Ludens"
+    rows = "".join(
+        f"<li>{escape(ticket['ticket_type'])}: <strong>{escape(ticket['code'])}</strong></li>"
+        for ticket in payload["tickets"]
+    )
+    html_body = (
+        "<h1>Compra simulada confirmada</h1>"
+        f"<p><strong>{escape(payload['show_title'])}</strong></p>"
+        f"<p>Sessão: {escape(payload['session_starts_at'])} · {escape(payload['venue'])}</p>"
+        f"<p>Total demonstrativo: R$ {payload['amount_cents'] / 100:.2f}</p>"
+        f"<ul>{rows}</ul>"
+        "<p>Este pedido e estes ingressos são de demonstração. Nenhum pagamento real foi realizado.</p>"
+        "<p>Os ingressos permanecem disponíveis na área Meus ingressos mesmo se este e-mail não chegar.</p>"
+    )
+    return subject, html_body
+
+
+def order_cancelled_email(payload: dict) -> tuple[str, str]:
+    by_theatre = payload["origin"] == "session"
+    subject = "Sessão cancelada — pedido de demonstração" if by_theatre else "Pedido cancelado — Ludens"
+    intro = (
+        "A sessão foi cancelada pelo teatro e o seu pedido foi cancelado automaticamente."
+        if by_theatre else "Você cancelou o seu pedido."
+    )
+    html_body = (
+        "<h1>Cancelamento registrado</h1>"
+        f"<p>{intro}</p>"
+        f"<p><strong>{escape(payload['show_title'])}</strong></p>"
+        f"<p>Sessão: {escape(payload['session_starts_at'])} · {escape(payload['venue'])}</p>"
+        f"<p>Motivo: {escape(payload['reason'])}</p>"
+        f"<p>{payload['ticket_count']} ingresso(s) invalidado(s).</p>"
+        f"<p>Reembolso simulado: {payload['refund_percent']}% "
+        f"(R$ {payload['refund_cents'] / 100:.2f}).</p>"
+        "<p>Este é um ambiente de demonstração: nenhum pagamento real foi feito e nenhum valor será devolvido.</p>"
+    )
+    return subject, html_body
+
+
 def password_reset_email(reset_url: str) -> tuple[str, str]:
     subject = "Redefinição de senha — Ludens"
     html_body = (
@@ -19,7 +61,7 @@ def email_change_requested_email(confirm_url: str, new_email: str) -> tuple[str,
         "O link vale por 1 hora e só pode ser usado uma vez. Ao confirmar, "
         "todas as sessões ativas são encerradas.</p>"
         "<p>Se você não pediu essa troca, ignore este e-mail — nada muda até "
-        "que o link seja aberto.</p>"
+        "que a troca seja confirmada na página.</p>"
     )
 
     return subject, html_body
@@ -41,6 +83,14 @@ def account_deletion_requested_email(confirm_url: str) -> tuple[str, str]:
         f'<p><a href="{confirm_url}">Clique aqui para confirmar a exclusão</a>. '
         "O link vale por 1 hora e só pode ser usado uma vez. Essa ação não pode "
         "ser desfeita.</p>"
+        "<p>A exclusão encerra o acesso em todos os dispositivos. O cadastro e "
+        "o vínculo com o histórico comercial são preservados; os dados não são "
+        "apagados automaticamente. A exclusão não cancela compras nem solicita "
+        "reembolso (nesta demonstração nenhum valor real é cobrado ou devolvido). "
+        "Ingressos já emitidos continuam válidos, mas o histórico e "
+        "o cancelamento deixam de estar acessíveis pela conta. "
+        "Para tratar compras ou dados preservados, entre em contato "
+        "com a administração do teatro.</p>"
         "<p>Se você não pediu essa exclusão, ignore este e-mail — sua conta "
         "continua ativa.</p>"
     )

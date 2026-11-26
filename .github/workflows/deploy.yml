@@ -16,6 +16,10 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: azure-production
+  cancel-in-progress: false
+
 jobs:
   # GHCR packages can be created private even in a public repo. After the
   # first real run of this job, confirm/flip ghcr.io/gcarvalhow/api.ludens
@@ -23,22 +27,20 @@ jobs:
   # app_service has no registry credentials configured, so a private
   # package breaks the App Service's docker pull on startup.
   publish:
-    uses: gcarvalhow/pipelines.ludens/.github/workflows/_publish.yaml@master
+    if: github.ref == 'refs/heads/master'
+    uses: gcarvalhow/pipelines.ludens/.github/workflows/_publish.yaml@97de844694c23662e53e77a9bcb24ec048602228
     with:
       image-name: ghcr.io/gcarvalhow/api.ludens
     secrets: inherit
 
   terraform:
     needs: publish
-    uses: gcarvalhow/pipelines.ludens/.github/workflows/_terraform.yaml@master
+    uses: gcarvalhow/pipelines.ludens/.github/workflows/_terraform.yaml@97de844694c23662e53e77a9bcb24ec048602228
     with:
       working-directory: terraform
       apply: ${{ inputs.apply }}
       # Ties docker_image_name to this commit's sha so Terraform actually
-      # detects a diff and updates the App Service — the default in
-      # modules/app_service/variables.tf never changes on its own, so
-      # without this every apply after the first would be a no-op and the
-      # container would keep running the old image.
+      # detects a diff and updates the App Service for each deployment.
       tf-vars: |
         TF_VAR_docker_image_name=ghcr.io/gcarvalhow/api.ludens:${{ github.sha }}
     secrets: inherit

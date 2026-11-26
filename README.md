@@ -1,5 +1,14 @@
 # api.ludens
 
+A fatia de conta do comprador usa os endpoints existentes de perfil, senha,
+troca de e-mail e exclusão. As confirmações removem o cookie de refresh;
+a exclusão desativa a conta preservando sua identidade para o histórico
+comercial. Contratos e testes estão na
+[documentação da conta](https://github.com/CodePenguinsCorp/docs.ludens/blob/feat/buyer-account-management/specs/identity-user-management/buyer-account.md).
+
+Para usar o frontend Vercel com a API no seu PC, consulte o
+[guia Docker + túnel](https://github.com/CodePenguinsCorp/docs.ludens/blob/master/team/local-api-vercel.md).
+
 <p align="center">
   <img src=".github/assets/logo.png" alt="ludens" width="180">
 
@@ -211,5 +220,6 @@ fluxo Trunk-Based: `/team-ludens:tbd-start` (issue + branch) → implementação
 - [Specs das features (N1)](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/specs)
 - [Ambiente de desenvolvimento](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/team/development.md)
 
-> **Status:** base de código e infraestrutura de processo prontas; os módulos de
-> negócio começam a ser implementados a partir das specs.
+> **Status:** reservas, compra demonstrativa, emissão de ingressos e histórico
+> do comprador estão implementados. A simulação não cria cobrança nem integra
+> um gateway.
