@@ -68,4 +68,4 @@ Logout e alteração de senha encerram todas as sessões. A exclusão mantém
 a identidade e os vínculos comerciais; encerra o acesso, sem cancelar
 compras nem solicitar reembolso. A política é exibida antes da solicitação
 e da confirmação. Detalhes e contratos estão na
-[documentação da conta do comprador](https://github.com/CodePenguinsCorp/docs.ludens/blob/feat/buyer-account-management/specs/identity-user-management/buyer-account.md).
+[documentação da conta do comprador](../../../../../docs/specs/identity-user-management/buyer-account.md).

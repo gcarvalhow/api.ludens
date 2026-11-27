@@ -2,7 +2,7 @@
 
 Cada feature do Ludens nasceu aqui como uma sequência de artefatos antes de
 qualquer linha de código, gerados pelo pipeline do plugin Claude Code
-[`gcarvalhow/team.ludens`](https://github.com/gcarvalhow/team.ludens) (skills
+`team.ludens` (skills
 `feature-design`, `logic-design`, `feature-implementation-spec`). O plugin foi
 descontinuado e não faz mais parte da estrutura do projeto — este diretório
 guarda o resultado já gerado, como registro histórico; não há mais pipeline
@@ -42,9 +42,9 @@ Exemplos: `specs/booking-reservation/`, `specs/catalog-show-search/`,
 | 4 | `backend.md` + `frontend.md` | skill `feature-implementation-spec` (delegando a `senior-dev`) | nenhuma fatia com bloqueio em aberto |
 
 Depois do artefato 4, cada superfície (Backend / Frontend) virava uma issue no
-GitHub Project [`@ludens`](https://github.com/orgs/gcarvalhow/projects/2) via
-`/team-ludens:tbd-start` — issue-mãe (`Issue Type = feature`) em `docs.ludens`;
-sub-issues nativas em `api.ludens` (Backend) e `web.ludens` (Frontend), com a
+issue neste repositório via
+`/team-ludens:tbd-start` — issue-mãe (`Issue Type = feature`);
+sub-issues nativas (Backend e Frontend), com a
 checklist de arquivos copiada do documento da superfície. Esse comando não
 está mais disponível com o plugin descontinuado; a fatia de feature em issue
 passa a ser manual até um novo processo ser definido.

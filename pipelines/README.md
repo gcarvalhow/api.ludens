@@ -1,8 +1,7 @@
-# pipelines.ludens
+# pipelines
 
-Migração CodePenguinsCorp: use `CodePenguinsCorp/pipelines.ludens` nos consumidores.
+Os templates vivem em `.github/workflows/` na raiz do monorepo e são chamados localmente.
 O workflow `_terraform.yaml` exige `backend-config` com conteúdo HCL do novo backend Azure.
-Consulte o [guia de infraestrutura](https://github.com/CodePenguinsCorp/docs.ludens/blob/master/team/infra-codepenguins.md).
 
 <p align="center">
   <img src=".github/assets/logo.png" alt="ludens" width="180">
@@ -28,7 +27,7 @@ Não falha se ainda não houver suíte de testes (trata "nenhum teste coletado" 
 ```yaml
 jobs:
   test:
-    uses: gcarvalhow/pipelines.ludens/.github/workflows/_test.yaml@master
+    uses: ./.github/workflows/_test.yaml
     with:
       working-directory: .
       compose-file: docker/docker-compose.Development.yml
@@ -46,7 +45,7 @@ Builda a imagem Docker do projeto a partir do `Dockerfile` na raiz.
 ```yaml
 jobs:
   build:
-    uses: gcarvalhow/pipelines.ludens/.github/workflows/_build.yaml@master
+    uses: ./.github/workflows/_build.yaml
     with:
       image-name: api-ludens:ci
 ```
@@ -63,9 +62,9 @@ Autentica com `secrets.GITHUB_TOKEN` (automático, sem PAT nova) via `docker/log
 ```yaml
 jobs:
   publish:
-    uses: gcarvalhow/pipelines.ludens/.github/workflows/_publish.yaml@master
+    uses: ./.github/workflows/_publish.yaml
     with:
-      image-name: ghcr.io/gcarvalhow/api.ludens
+      image-name: ghcr.io/igorseberino/api.ludens
 ```
 
 | Input | Obrigatório | Default | Descrição |
@@ -83,7 +82,7 @@ uma a uma).
 ```yaml
 jobs:
   terraform:
-    uses: gcarvalhow/pipelines.ludens/.github/workflows/_terraform.yaml@master
+    uses: ./.github/workflows/_terraform.yaml
     with:
       working-directory: terraform
       apply: false

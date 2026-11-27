@@ -36,7 +36,7 @@ Dependências
 `docs.ludens/backend/security/configuration.md`.
 
 > **Revisão de 2026-09-11:** a versão anterior deste documento não batia com o
-> código real já mergeado (PR #8, `gcarvalhow/api.ludens`) — apesar de ser este
+> código real já mergeado (PR #8, `igorSeberino/api.ludens`) — apesar de ser este
 > o primeiro módulo do repositório, o documento nunca foi atualizado depois da
 > própria implementação divergir dele. Corrigido nesta revisão: `role: enum
 > Role` → `is_admin: bool` (a classe `Role` não existe); schemas em camelCase

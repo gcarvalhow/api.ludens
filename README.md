@@ -1,7 +1,7 @@
 # ludens
 
-Monorepo do ludens. Junta os quatro repositórios que antes viviam separados em
-`CodePenguinsCorp`, com o histórico de commits de cada um preservado.
+Monorepo do ludens. Junta os quatro repositórios que antes viviam separados
+(api, web, docs e pipelines), com o histórico de commits de cada um preservado.
 
 | Pasta        | Origem               | O que é                                           |
 | ------------ | -------------------- | ------------------------------------------------- |

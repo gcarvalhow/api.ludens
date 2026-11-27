@@ -4,10 +4,10 @@ A fatia de conta do comprador usa os endpoints existentes de perfil, senha,
 troca de e-mail e exclusão. As confirmações removem o cookie de refresh;
 a exclusão desativa a conta preservando sua identidade para o histórico
 comercial. Contratos e testes estão na
-[documentação da conta](https://github.com/CodePenguinsCorp/docs.ludens/blob/feat/buyer-account-management/specs/identity-user-management/buyer-account.md).
+[documentação da conta](../../docs/specs/identity-user-management/buyer-account.md).
 
 Para usar o frontend Vercel com a API no seu PC, consulte o
-[guia Docker + túnel](https://github.com/CodePenguinsCorp/docs.ludens/blob/master/team/local-api-vercel.md).
+[guia Docker + túnel](../../docs/team/local-api-vercel.md).
 
 <p align="center">
   <img src=".github/assets/logo.png" alt="ludens" width="180">
@@ -39,7 +39,7 @@ compras simultâneas nunca excedem a capacidade da sessão) e dispara os efeitos
 de pós-venda (e-mail de confirmação, estorno) de forma confiável.
 
 O produto completo (problema, requisitos RF/RN, decisões de arquitetura) vive em
-**[`gcarvalhow/docs.ludens`](https://github.com/gcarvalhow/docs.ludens)**. Este
+**[`docs/`](../../docs/)**. Este
 README cobre o suficiente para entender, rodar e contribuir com o backend.
 
 ## Stack
@@ -55,8 +55,8 @@ README cobre o suficiente para entender, rodar e contribuir com o backend.
 ## Arquitetura em resumo
 
 Três padrões sustentam o backend (detalhe em
-[`docs.ludens/backend/overview.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/overview.md)
-e nos [ADRs](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/backend/design)):
+[`docs/backend/overview.md`](../../docs/backend/overview.md)
+e nos [ADRs](../../docs/backend/overview.md)):
 
 - **DDD** — a regra de negócio vive isolada em `domain/`, em *aggregates* que só
   mudam de estado pelos próprios métodos (`raise_event → _apply → _when_*`).
@@ -94,18 +94,18 @@ tests/                   # testes de domínio (sem DB) e de usecase (Postgres re
 ```
 
 > Os módulos de negócio são implementados **um por vez, a partir de uma spec** em
-> [`docs.ludens/specs/`](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/specs).
+> [`docs/specs/`](../../docs/specs).
 > Cada spec traz o mapa de arquivos por responsável e o passo a passo.
 
 ## Rodar localmente
 
 A API sobe **via contêiner** — é o runtime padrão local e de pipeline (ver
-[`docs.ludens/backend/overview.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/overview.md)).
+[`docs/backend/overview.md`](../../docs/backend/overview.md)).
 Não precisa de Python instalado na máquina, só **Docker** + **Docker Compose**.
 
 ```bash
-git clone https://github.com/gcarvalhow/api.ludens
-cd api.ludens
+git clone https://github.com/igorSeberino/api.ludens
+cd api.ludens/apps/api
 
 # 1. Configuração — copie o template e preencha o que estiver em branco
 cp .env.example .env.local
@@ -152,7 +152,7 @@ docker run --rm --network ludens-dev --env-file .env.local api-ludens alembic up
 ## Variáveis de ambiente
 
 Lidas de `.env.local` por `src/app/config.py`. Classificação de segurança em
-[`docs.ludens/backend/security/configuration.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/security/configuration.md):
+[`docs/backend/security/configuration.md`](../../docs/backend/security/configuration.md):
 **SECRET** (segredo forte, nunca no VCS), **SENSITIVE** (dado sensível),
 **CONFIG** (parâmetro comum).
 
@@ -174,7 +174,7 @@ reserva). O `.env.example` lista todas, comentadas até a feature entrar.
 ## Testes
 
 Ao contrário da API em si, os testes rodam com Python local (é como o CI
-roda também — ver [`backend/testing.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md)),
+roda também — ver [`backend/testing.md`](../../docs/backend/testing.md)),
 não em contêiner:
 
 ```bash
@@ -185,7 +185,7 @@ pytest -q                 # testes de domínio (sem DB) e de usecase (Postgres r
 O foco dos testes são as **regras de negócio da camada de domínio** — reserva e
 compra, controle de disponibilidade (concorrência), preço de meia-entrada,
 reembolso. Estratégia completa em
-[`docs.ludens/backend/testing.md`](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md).
+[`docs/backend/testing.md`](../../docs/backend/testing.md).
 
 **Portões de merge** (CI em `push`/PR para `master`): `pytest -q` verde ·
 `docker build` limpo · **1 aprovação** de outro desenvolvedor.
@@ -210,15 +210,15 @@ fluxo Trunk-Based: `/team-ludens:tbd-start` (issue + branch) → implementação
 
 **Convenções:** trunk é `master`; branches curtas em inglês (`feat/NN-slug`);
 **Conventional Commits** em português no imperativo; issues e o backlog vivem no
-[GitHub Project `@ludens`](https://github.com/orgs/gcarvalhow/projects/2).
+[Issues do repositório](https://github.com/igorSeberino/api.ludens/issues).
 
 ## Documentação de referência
 
-- [Arquitetura do backend](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/overview.md) · [ADRs](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/backend/design)
-- [Autenticação e variáveis de ambiente](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/backend/security)
-- [Guia de estilo](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/code-style.md) · [Testes e CI](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/backend/testing.md)
-- [Specs das features (N1)](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/specs)
-- [Ambiente de desenvolvimento](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/team/development.md)
+- [Arquitetura do backend](../../docs/backend/overview.md)
+- [Autenticação e variáveis de ambiente](../../docs/backend/security)
+- [Guia de estilo](../../docs/backend/code-style.md) · [Testes e CI](../../docs/backend/testing.md)
+- [Specs das features (N1)](../../docs/specs)
+- [Ambiente de desenvolvimento](../../docs/team/local-api-vercel.md)
 
 > **Status:** reservas, compra demonstrativa, emissão de ingressos e histórico
 > do comprador estão implementados. A simulação não cria cobrança nem integra

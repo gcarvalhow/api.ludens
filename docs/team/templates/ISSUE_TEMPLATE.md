@@ -1,7 +1,7 @@
 # Template de Issue
 
-Preencha isto antes de abrir a issue no GitHub Project
-[`@ludens`](https://github.com/orgs/gcarvalhow/projects/2). Uma issue só entra
+Preencha isto antes de abrir a issue neste repositório
+[issues](https://github.com/igorSeberino/api.ludens/issues). Uma issue só entra
 em desenvolvimento quando bate o
 [Definition of Ready](../overview.md#definition-of-ready-dor-pronto-para-desenvolver)
 completo.
@@ -35,8 +35,8 @@ envio de e-mail, endpoint de outro módulo).
 
 ## Escopo
 
-Campos do Project
-[`@ludens`](https://github.com/orgs/gcarvalhow/projects/2):
+Campos do quadro
+[issues](https://github.com/igorSeberino/api.ludens/issues):
 
 * **Área:** `backend` | `frontend` | `infra` | `docs`
 * **Tipo:** `feature` | `task` | `refactor` | `bug`

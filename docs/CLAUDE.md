@@ -1,8 +1,8 @@
-# docs.ludens — orientação para agentes
+# docs — orientação para agentes
 
-Este repositório é a **fonte de entrada** do projeto Ludens: produto, requisitos,
+Esta pasta (`docs/` do monorepo) é a **fonte de entrada** do projeto Ludens: produto, requisitos,
 arquitetura, acordo de manutenibilidade, RACI e padrões de engenharia. Os
-repositórios de código (`gcarvalhow/api.ludens`, `gcarvalhow/web.ludens`) têm
+pastas de código (`apps/api`, `apps/web`) têm
 READMEs curtos que apontam para cá.
 
 ## Regras ao editar
@@ -29,8 +29,8 @@ READMEs curtos que apontam para cá.
   Marcador de lista é `*`, não `-`. Não vale para hífen em palavra composta
   (`meia-entrada`), nome de arquivo/pasta (`kebab-case`) ou conteúdo dentro de
   bloco de código.
-- O backlog do projeto vive num **GitHub Project da organização**, não aqui;
-  não crie item de backlog neste repositório. Os templates de
+- O backlog do projeto vive nas **issues do repositório**;
+  não crie arquivos de backlog em `docs/`. Os templates de
   issue/PR/commit do fluxo TBD (`team/templates/`) são exceção: descrevem o
   processo, não são backlog.
 
