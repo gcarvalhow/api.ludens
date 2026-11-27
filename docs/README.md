@@ -1,8 +1,6 @@
-# docs.ludens
+# Documentação do ludens
 
 Uso sem Azure: [API local com frontend Vercel](team/local-api-vercel.md).
-
-Infraestrutura dos forks: [guia CodePenguinsCorp](team/infra-codepenguins.md).
 
 <p align="center">
   <img src=".github/assets/logo.png" alt="ludens" width="180">
@@ -26,9 +24,9 @@ código têm READMEs curtos que apontam para cá.
 
 ## Repositórios
 
-* [`gcarvalhow/docs.ludens`](https://github.com/gcarvalhow/docs.ludens): fonte de entrada. Este repositório, produto, requisitos, RACI, padrões de engenharia.
-* [`gcarvalhow/api.ludens`](https://github.com/gcarvalhow/api.ludens): backend. API FastAPI (monólito modular + DDD), Postgres, Docker.
-* [`gcarvalhow/web.ludens`](https://github.com/gcarvalhow/web.ludens): frontend. Aplicação Next.js (App Router, TypeScript).
+* [`docs/`](./): fonte de entrada. Esta pasta, produto, requisitos, RACI, padrões de engenharia.
+* [`apps/api/`](../apps/api): backend. API FastAPI (monólito modular + DDD), Postgres, Docker.
+* [`apps/web/`](../apps/web): frontend. Aplicação Next.js (App Router, TypeScript).
 
 ## Publicado vs. contexto de repo
 
@@ -44,7 +42,7 @@ por quem trabalha no projeto.
   (histórias de usuário e critérios de aceitação), RNF01–RNF06 e o quadro
   consolidado de dependências técnicas.
 
-## Arquitetura, backend `api.ludens` (publicado)
+## Arquitetura, backend `apps/api` (publicado)
 
 * [Visão geral da arquitetura](backend/overview.md): módulos, fluxos e schema (desenho, ainda não implementado).
 * [Segurança](backend/security/): autenticação (JWT + refresh) e variáveis de ambiente.

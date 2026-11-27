@@ -1,8 +1,8 @@
 blank_issues_enabled: true
 contact_links:
   - name: Backlog do produto
-    url: https://github.com/orgs/gcarvalhow/projects/2
+    url: https://github.com/igorSeberino/api.ludens/issues
     about: O backlog e a priorização vivem no GitHub Project @ludens.
   - name: Documentação (produto, requisitos, arquitetura)
-    url: https://github.com/gcarvalhow/docs.ludens
+    url: https://github.com/igorSeberino/api.ludens/tree/master/docs/
     about: Fonte de entrada do projeto.

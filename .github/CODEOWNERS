@@ -3,7 +3,7 @@
 
 /apps/api/                @igorSeberino
 /apps/api/docker/         @gabrielcarvallho @igorSeberino
-/apps/api/migrations/     @igorSeberino
+/apps/api/src/migrations/ @igorSeberino
 
 /apps/web/                @Diegonessler
 

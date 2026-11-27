@@ -25,7 +25,7 @@ reserva por 15 minutos (com contador visível), paga por Pix e recebe o ingresso
 sem risco de comprar um assento já vendido.
 
 O produto completo (problema, requisitos RF/RN, contrato de cada feature) vive em
-**[`gcarvalhow/docs.ludens`](https://github.com/gcarvalhow/docs.ludens)**.
+**[`docs/`](../../docs/)**.
 
 ## Stack
 
@@ -90,8 +90,8 @@ tsconfig.json
 Pré-requisitos: **Node 20+**.
 
 ```bash
-git clone https://github.com/gcarvalhow/web.ludens
-cd web.ludens
+git clone https://github.com/igorSeberino/api.ludens
+cd api.ludens/apps/web
 
 cp .env.example .env.local
 npm install
@@ -110,7 +110,7 @@ npm run dev
 
 Sem a API de pé, as telas de conta (`/login`, `/registro`, `/recuperar-senha`,
 `/redefinir-senha`) carregam mas toda chamada falha. Suba o
-[`api.ludens`](https://github.com/gcarvalhow/api.ludens) primeiro (ver o README
+[`apps/api`](../api) primeiro (ver o README
 de lá — Postgres via `docker/docker-compose.Development.yml`, API via
 `Dockerfile` próprio, porta `8000`; CORS já libera `http://localhost:3000` por
 padrão). Com a API respondendo em `http://localhost:8000` e o `.env.local`
@@ -140,14 +140,14 @@ claude plugin install frontend@team-ludens --scope project
 
 Trunk é `master`; branches curtas em inglês (`feat/NN-slug`); **Conventional
 Commits em português**; issues e backlog no
-[Project `@ludens`](https://github.com/orgs/gcarvalhow/projects/2). Portões de
+[Issues do repositório](https://github.com/igorSeberino/api.ludens/issues). Portões de
 merge: `npm run lint` + `npm run test` + `npm run build` verdes + 1 aprovação.
 
 ## Documentação de referência
 
-- [Escopo do produto](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/product/scope.md) · [Requisitos](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/requirements/functional.md)
-- [Specs das features (N1)](https://github.com/gcarvalhow/docs.ludens/tree/HEAD/specs) — contrato backend→frontend em `integration.md`
-- [Ambiente de desenvolvimento](https://github.com/gcarvalhow/docs.ludens/blob/HEAD/team/development.md)
+- [Escopo do produto](../../docs/product/overview.md) · [Requisitos](../../docs/product/functional.md)
+- [Specs das features (N1)](../../docs/specs) — contrato backend→frontend em `integration.md`
+- [Ambiente de desenvolvimento](../../docs/team/local-api-vercel.md)
 
 > **Status:** conta, catálogo, reservas e compra demonstrativa estão integrados
 > com a API. Compras e códigos de ingresso ficam em `Minhas compras` e `Meus

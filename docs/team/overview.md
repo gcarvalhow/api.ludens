@@ -1,15 +1,19 @@
 # Equipe e Papéis (Matriz RACI)
 
-Papéis conforme a Matriz RACI do Processo 18 (elaboração 31/07/2026).
+Papéis conforme a Matriz RACI do Processo 18, atualizada para a N3.
 
 ## Integrantes e papéis
 
-* Product Owner (PO): Gabriel Carvalho ([@gabrielcarvallho](https://github.com/gabrielcarvallho))
-* DevOps: Gabriel Carvalho ([@gabrielcarvallho](https://github.com/gabrielcarvallho))
-* Engenheiro de Requisitos: Renato Colin Neto ([@RenatoColin](https://github.com/RenatoColin))
-* Quality Assurance (QA): Adrian Cesar Gonçalves ([@adrian-cesar](https://github.com/adrian-cesar))
-* Desenvolvedor Frontend: Diego Nessler ([@Diegonessler](https://github.com/Diegonessler))
-* Desenvolvedor Backend: Igor Thiago Seberino ([@igorSeberino](https://github.com/igorSeberino))
+Papéis da N3 (entrega de 27/11/2026):
+
+* DevOps: Igor Thiago Seberino ([@igorSeberino](https://github.com/igorSeberino))
+* Engenheiro de Requisitos: Gabriel Carvalho ([@gabrielcarvallho](https://github.com/gabrielcarvallho))
+* Desenvolvedor Full-stack: Adrian Cesar Gonçalves ([@adrian-cesar](https://github.com/adrian-cesar))
+* Quality Assurance (QA): Renato Colin Neto ([@RenatoColin](https://github.com/RenatoColin))
+* Product Owner (PO): Diego Nessler ([@Diegonessler](https://github.com/Diegonessler))
+
+A matriz RACI abaixo (elaboração original de 31/07/2026) foi atualizada para
+estes papéis.
 
 ## Matriz RACI
 
@@ -17,30 +21,29 @@ Legenda: R é Responsável (executa), A é Autoridade / Aprovador, C é
 Consultado, I é Informado. Só entram na lista abaixo os papéis efetivamente
 envolvidos em cada atividade.
 
-* Definir o plano inicial de testes e os critérios de qualidade: Adrian (QA)
-  é R; Gabriel (PO) é A; Renato (Eng. Requisitos) é C.
+* Definir o plano inicial de testes e os critérios de qualidade: Renato (QA)
+  é R; Diego (PO) é A; Gabriel (Eng. Requisitos) é C.
 * Configurar o projeto Next.js (App Router) e prototipar as telas
-  principais: Diego (Frontend) é R; Adrian (QA) é C; Gabriel (PO) é A.
-* Organizar e priorizar o backlog do produto: Gabriel (PO) é R e A; Renato
+  principais: Adrian (Full-stack) é R; Renato (QA) é C; Diego (PO) é A.
+* Organizar e priorizar o backlog do produto: Diego (PO) é R e A; Gabriel
   (Eng. Requisitos) é C.
-* Configurar o ambiente Docker e a pipeline inicial de CI/CD: Gabriel
-  (DevOps) é R; Igor (Backend) é A; Diego (Frontend) é I.
-* Estruturar o backend (FastAPI) e modelar os módulos de domínio: Igor
-  (Backend) é R; Renato (Eng. Requisitos) é A; Gabriel (DevOps) é C; Diego
-  (Frontend) é I.
-* Levantar e documentar os requisitos e regras de negócio: Renato (Eng.
-  Requisitos) é R; Gabriel (PO) é A; Adrian (QA) é C.
+* Configurar o ambiente Docker e a pipeline inicial de CI/CD: Igor
+  (DevOps) é R; Adrian (Full-stack) é A.
+* Estruturar o backend (FastAPI) e modelar os módulos de domínio: Adrian
+  (Full-stack) é R; Gabriel (Eng. Requisitos) é A; Igor (DevOps) é C.
+* Levantar e documentar os requisitos e regras de negócio: Gabriel (Eng.
+  Requisitos) é R; Diego (PO) é A; Renato (QA) é C.
 
 ## Backlog
 
-O backlog do produto e as histórias de usuário vivem no **GitHub Project
-[`@ludens`](https://github.com/orgs/gcarvalhow/projects/2)** da organização
-`gcarvalhow`, que agrega issues dos repositórios `api.ludens`, `web.ludens` e
-`docs.ludens`. Este repositório (`docs.ludens`) guarda os requisitos e os
-padrões; os itens de backlog ficam só no Project.
+O backlog do produto e as histórias de usuário vivem nas
+**[issues deste repositório](https://github.com/igorSeberino/api.ludens/issues)**
+(`igorSeberino/api.ludens`, monorepo com `apps/api`, `apps/web`, `docs` e
+`pipelines`). A pasta `docs/` guarda os requisitos e os padrões; os itens de
+backlog ficam só nas issues.
 
 Cada feature é fatiada em issues por superfície (Backend / Frontend), seguindo
-[`ISSUE_TEMPLATE.md`](templates/ISSUE_TEMPLATE.md). Campos do Project: `Area`
+[`ISSUE_TEMPLATE.md`](templates/ISSUE_TEMPLATE.md). Campos do quadro: `Area`
 (backend/frontend/infra/docs), `Priority` (3 é o mais importante, 0 é o
 menos importante), `Issue Type` (feature/task/refactor/bug), `Status`
 (Backlog/In Progress/Done). Labels: `module: *`, `N1`/`N2`/`N3`,
@@ -80,9 +83,9 @@ Um card só é *Done* quando:
 
 ### Relação com os templates de issue
 
-Os repositórios de código (`api.ludens`, `web.ludens`) trazem o checklist de
-DoR no template de história de usuário e o checklist de DoD no template de
-Pull Request.
+O monorepo traz o checklist de DoR nos templates de história de usuário
+(`.github/ISSUE_TEMPLATE/`) e o checklist de DoD nos templates de Pull Request
+(`.github/PULL_REQUEST_TEMPLATE/`).
 
 ## Gestão de débito técnico
 
@@ -91,7 +94,7 @@ Versão operacional do [Acordo de Manutenibilidade §2](maintainability.md).
 ### Política de registro
 
 Todo atalho técnico, pendência de refatoração ou *workaround* é registrado
-**imediatamente** no backlog (GitHub Project da organização) como uma issue do
+**imediatamente** no backlog (issues deste repositório) como uma issue do
 tipo **Débito Técnico**, contendo:
 
 * descrição do problema;
@@ -99,8 +102,8 @@ tipo **Débito Técnico**, contendo:
 * impacto estimado;
 * proposta de solução.
 
-Os repositórios `api.ludens` e `web.ludens` trazem o template de issue "Débito
-Técnico" com esses campos, e a label `débito técnico` existe nos quatro repos.
+O template de issue "Débito Técnico" (`.github/ISSUE_TEMPLATE/debito-tecnico.md`)
+traz esses campos, e a label `débito técnico` existe neste repositório.
 
 ### Orçamento de ciclo
 
@@ -118,6 +121,11 @@ planejamento) os débitos que afetam:
 
 ### Débitos conhecidos hoje
 
+Os débitos da N3 que ficaram fora do escopo da entrega de 27/11 estão
+registrados como issues com a label `débito técnico`: DT-01, DT-02, DT-03,
+DT-06, DT-07, DT-08, DT-14 e DT-15. Consulte a
+[lista](https://github.com/igorSeberino/api.ludens/issues?q=is%3Aissue+label%3A%22d%C3%A9bito+t%C3%A9cnico%22).
+
 As rotas de autenticação já estão alinhadas sob `/api/identity`; o débito
 anterior de prefixos não está aberto no código atual.
 
@@ -131,8 +139,8 @@ não entrega reservas, pagamento nem listagem administrativa de usuários.
 Registro histórico da preparação pela equipe anterior:
 
 * **CODEOWNERS / handles desatualizados na separação de repos.** Origem:
-  migração do monorepo. Resolução: `CODEOWNERS` recriado em `api.ludens`
-  (Igor) e `web.ludens` (Diego) com a org `gcarvalhow` (2026-09-01).
+  migração do monorepo. Resolução: `CODEOWNERS` unificado na raiz do monorepo
+  (`.github/CODEOWNERS`).
 * **Meia-entrada exigindo documento de estudante contra a RN04.** Origem:
   ERS original. Resolução: sem código, virou critério de aceite da
   funcionalidade `booking-ticket-issuance`; ver
@@ -148,8 +156,8 @@ da Matriz RACI acima. Os templates citados vivem em
 
 ### 1. Abrir a issue
 
-Toda tarefa nasce como issue no GitHub Project
-[`@ludens`](https://github.com/orgs/gcarvalhow/projects/2), escrita a partir de
+Toda tarefa nasce como issue neste repositório
+[issues do repositório](https://github.com/igorSeberino/api.ludens/issues), escrita a partir de
 [`ISSUE_TEMPLATE.md`](templates/ISSUE_TEMPLATE.md), que identifica o escopo
 (história de usuário, critérios de aceitação, área, dependências técnicas). Só
 entra em desenvolvimento depois de bater o
