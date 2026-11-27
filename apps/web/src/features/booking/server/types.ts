@@ -1,19 +1,4 @@
-export type Reservation = {
-  id: string;
-  session_id: string;
-  show_title: string;
-  starts_at: string;
-  venue: string;
-  full_quantity: number;
-  half_quantity: number;
-  full_price_cents: number;
-  half_price_cents: number;
-  total_cents: number;
-  status: 'open' | 'confirmed' | 'expired' | 'cancelled';
-  created_at: string;
-  expires_at: string;
-  server_now: string;
-};
+export type { Reservation } from '@booking/server/types/reservation.types';
 
 export type Ticket = {
   id: string;

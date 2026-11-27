@@ -1,5 +1,5 @@
 import { endpoints } from '@web/routes/endpoints';
-import { loginUrl } from '@account/lib/navigation';
+import { loginUrl } from '@web/lib/navigation';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
